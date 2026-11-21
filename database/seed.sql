@@ -100,7 +100,7 @@ INSERT INTO loans (kode_pinjam, user_id, book_id, status, tanggal_pengajuan)
 SELECT 'LN-SEED-008', u.id, b.id, 'menunggu_konfirmasi', now() - interval '1 hour'
 FROM users u
 CROSS JOIN books b
-WHERE u.email = 'citra@student.ac.id' AND b.isbn = '9789799731234';
+WHERE u.email = 'aura@student.ac.id' AND b.isbn = '9789799731234';
 
 -- 7. DATA DENDA
 -- Budi terlambat mengembalikan buku selama 5 hari.
