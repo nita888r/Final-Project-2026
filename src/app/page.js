@@ -1,69 +1,80 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { query } from '@/lib/db';
+import { fmtDate } from '@/lib/utils';
+import BookShelf from '@/components/BookShelf';
+import CollectionCards from '@/components/CollectionCards';
+import QuickSearch from '@/components/QuickSearch';
+import LibraryIcon from '@/components/LibraryIcon';
 
-export default function Home() {
+export default async function Home() {
+  // 5 buku terpopuler: JOIN + COUNT + GROUP BY
+  const populer = await query(
+    `SELECT b.id, b.judul, b.pengarang, b.sampul, b.stok_tersedia, c.nama_kategori,
+            COUNT(l.id) AS total_pinjam,
+            COALESCE((SELECT ROUND(AVG(r.rating),1) FROM reviews r WHERE r.book_id=b.id),0) AS rata_rating
+     FROM books b
+     JOIN loans l ON l.book_id = b.id
+     JOIN categories c ON c.id = b.category_id
+     WHERE l.status IN ('sedang_dipinjam','selesai')
+     GROUP BY b.id, c.nama_kategori
+     ORDER BY total_pinjam DESC, b.judul
+     LIMIT 5`
+  );
+  const pengumuman = await query(
+    `SELECT id, judul, konten, kategori, tanggal_rilis FROM announcements
+     WHERE status='published' AND tanggal_rilis <= CURRENT_DATE
+     ORDER BY tanggal_rilis DESC, id DESC LIMIT 3`
+  );
+
+  const categories = await query(`SELECT c.id, c.nama_kategori, COUNT(b.id) AS total FROM categories c LEFT JOIN books b ON b.category_id=c.id GROUP BY c.id, c.nama_kategori ORDER BY c.nama_kategori`);
+  const previews = await query(`SELECT id, judul, sampul, category_id FROM (SELECT id, judul, sampul, category_id, ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY id) AS rn FROM books) ranked WHERE rn <= 3 ORDER BY category_id, rn`);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="home-page space-y-12">
+      <section className="collection-intro">
+        <p className="collection-kicker">RUANG AKSARA · PERPUSTAKAAN DIGITAL</p>
+        <h1>Dunia ilmu, <em>dalam genggaman.</em></h1>
+        <p>Temukan bacaan yang menemani perjalanan ilmumu.</p>
+        <div className="collection-search"><QuickSearch /></div>
+        <div className="hero-catalog-link"><Link href="/katalog">Jelajahi katalog <span aria-hidden="true">↗</span></Link><span>{categories.length} kategori bacaan</span></div>
+      </section>
+      <section className="home-section">
+        <div className="section-heading"><h2>Semua koleksi</h2><Link href="/katalog" className="section-link">Lihat semua <LibraryIcon name="arrow" /></Link></div>
+        <CollectionCards categories={categories} books={previews} />
+      </section>
+
+      <section className="home-section">
+        <div className="section-heading">
+          <h2><LibraryIcon name="book" /> Buku Terpopuler</h2>
+          <Link href="/katalog" className="section-link">Lihat seluruh koleksi <LibraryIcon name="arrow" /></Link>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        {populer.length === 0 ? (
+          <p className="card text-sm">Belum ada data peminjaman. Buku terpopuler akan muncul setelah ada transaksi.</p>
+        ) : (
+          <BookShelf books={populer} />
+        )}
+      </section>
+
+      <section className="home-section">
+        <div className="section-heading">
+          <h2><LibraryIcon name="news" /> Pengumuman Terbaru</h2>
+          <Link href="/pengumuman" className="section-link">Semua pengumuman <LibraryIcon name="arrow" /></Link>
         </div>
-      </main>
+        {pengumuman.length === 0 ? (
+          <p className="card text-sm">Belum ada pengumuman yang dipublikasikan.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {pengumuman.map((a) => (
+              <Link key={a.id} href={`/pengumuman/${a.id}`} className="card block transition hover:border-gold">
+                <span className="badge bg-gold/30 text-brown capitalize">{a.kategori}</span>
+                <h3 className="mt-2">{a.judul}</h3>
+                <p className="mt-1 line-clamp-3 text-sm text-ink/80">{a.konten}</p>
+                <p className="mt-3 text-xs text-ink/60">{fmtDate(a.tanggal_rilis)}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
