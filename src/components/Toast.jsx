@@ -28,14 +28,16 @@ export default function Toast() {
   }, [open]);
 
   useEffect(() => {
-    const key = params.get('notif');
-    if (!key) return;
-    if (NOTIF[key]) open(NOTIF[key]);
-    const next = new URLSearchParams(params.toString());
-    next.delete('notif');
-    const qs = next.toString();
-    window.history.replaceState(null, '', pathname + (qs ? `?${qs}` : ''));
-  }, [params, pathname, open]);
+  const key = params.get('notif');
+  if (!key) return;
+  if (NOTIF[key]) {
+    queueMicrotask(() => open(NOTIF[key]));
+  }
+  const next = new URLSearchParams(params.toString());
+  next.delete('notif');
+  const qs = next.toString();
+  window.history.replaceState(null, '', pathname + (qs ? `?${qs}` : ''));
+}, [params, pathname, open]);
 
   if (!toast) return null;
   const ok = toast.type === 'success';
