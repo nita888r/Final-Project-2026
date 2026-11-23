@@ -6,7 +6,7 @@ export default function UserForm({ action, user }) {
     <ActionForm action={action} className="card space-y-4">
       {edit && <input type="hidden" name="id" value={user.id} />}
       <div><label className="label" htmlFor="nama_lengkap">Nama lengkap</label><input id="nama_lengkap" name="nama_lengkap" required defaultValue={user?.nama_lengkap ?? ''} className="input" /></div>
-      <div><label className="label" htmlFor="email">Email</label><input id="email" name="email" type="email" required defaultValue={user?.email ?? ''} className="input" /></div>
+      <div><label className="label" htmlFor="email">Email <span className="font-normal text-ink/60">(Mahasiswa wajib email kampus .ac.id / .edu)</span></label><input id="email" name="email" type="email" required defaultValue={user?.email ?? ''} className="input" /></div>
       <div><label className="label" htmlFor="nomor_identitas">Nomor identitas (NIM/NIP)</label><input id="nomor_identitas" name="nomor_identitas" required defaultValue={user?.nomor_identitas ?? ''} className="input" /></div>
       <div>
         <label className="label" htmlFor="role">Role</label>
