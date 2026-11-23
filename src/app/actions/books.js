@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache';
 
 import { query, withTransaction } from '@/lib/db';
 import { requireRole } from '@/lib/session';
-import { saveBookImage, deleteBookImage } from '@/lib/upload';
 
 import {
   safe,
@@ -15,6 +14,10 @@ import {
   num,
   currentYear,
 } from '@/lib/utils';
+
+// ==================================================
+// KONFIGURASI GAMBAR
+// ==================================================
 
 const MAX_COVER_BYTES = 5 * 1024 * 1024;
 
@@ -61,8 +64,11 @@ function sniffImage(b) {
   return null;
 }
 
-// Membaca file dari form
-async function readCover(fd, required) {
+// ==================================================
+// MEMBACA GAMBAR DARI FORM
+// ==================================================
+
+async function readCover(fd, required = false) {
   const file = fd.get('sampul_file');
 
   if (
@@ -97,35 +103,16 @@ async function readCover(fd, required) {
     );
   }
 
-  return new Blob([data], {
-    type: mime,
-  });
+  return {
+    data,
+    mime,
+  };
 }
 
-// Menghapus file jika sudah tidak digunakan
-async function cleanupCover(imagePath) {
-  if (
-    !imagePath ||
-    !imagePath.startsWith('/uploads/books/')
-  ) {
-    return;
-  }
+// ==================================================
+// VALIDASI DATA BUKU
+// ==================================================
 
-  try {
-    const usage = await query(
-      'SELECT 1 FROM books WHERE sampul=$1 LIMIT 1',
-      [imagePath]
-    );
-
-    if (usage.length === 0) {
-      await deleteBookImage(imagePath);
-    }
-  } catch (error) {
-    console.error('[CLEANUP ERROR]', error);
-  }
-}
-
-// Validasi data buku
 function fields(fd) {
   const f = {
     judul: str(fd, 'judul'),
@@ -157,7 +144,9 @@ function fields(fd) {
   }
 
   if (!Number.isInteger(f.stok) || f.stok < 0) {
-    throw new AppError('Stok tidak boleh negatif.');
+    throw new AppError(
+      'Stok tidak boleh negatif.'
+    );
   }
 
   if (!Number.isInteger(f.durasi) || f.durasi <= 0) {
@@ -190,60 +179,90 @@ export async function createBook(_prev, fd) {
       throw new AppError('ISBN wajib diisi.');
     }
 
+    // Membaca gambar yang diunggah
     const cover = await readCover(fd, true);
 
+    // Memeriksa ISBN duplikat
     const dup = await query(
       'SELECT 1 FROM books WHERE isbn=$1',
       [isbn]
     );
 
     if (dup.length) {
-      throw new AppError('ISBN sudah terdaftar.');
+      throw new AppError(
+        'ISBN sudah terdaftar.'
+      );
     }
 
-    // Simpan gambar ke public/uploads/books
-    const imagePath = await saveBookImage(cover);
+    // Simpan buku dan gambar dalam satu transaksi
+    await withTransaction(async (c) => {
 
-    try {
-      // Simpan data dan lokasi gambar ke PostgreSQL
-      await withTransaction(async (c) => {
-        await c.query(
-          `INSERT INTO books (
-            category_id,
-            isbn,
-            judul,
-            pengarang,
-            penerbit,
-            tahun_terbit,
-            stok_total,
-            stok_tersedia,
-            durasi_maks_pinjam,
-            denda_per_hari,
-            sampul
-          )
-          VALUES (
-            $1,$2,$3,$4,$5,$6,$7,$7,$8,$9,$10
-          )`,
-          [
-            f.category,
-            isbn,
-            f.judul,
-            f.pengarang,
-            f.penerbit,
-            f.tahun,
-            f.stok,
-            f.durasi,
-            f.denda,
-            imagePath,
-          ]
-        );
-      });
-    } catch (error) {
-      await cleanupCover(imagePath);
-      throw error;
-    }
+      // 1. Simpan data buku
+      const { rows } = await c.query(
+        `INSERT INTO books (
+          category_id,
+          isbn,
+          judul,
+          pengarang,
+          penerbit,
+          tahun_terbit,
+          stok_total,
+          stok_tersedia,
+          durasi_maks_pinjam,
+          denda_per_hari,
+          sampul
+        )
+        VALUES (
+          $1,$2,$3,$4,$5,$6,$7,$7,$8,$9,$10
+        )
+        RETURNING id`,
+        [
+          f.category,
+          isbn,
+          f.judul,
+          f.pengarang,
+          f.penerbit,
+          f.tahun,
+          f.stok,
+          f.durasi,
+          f.denda,
+          null,
+        ]
+      );
 
-    console.log('[DATABASE SUCCESS]', imagePath);
+      const bookId = rows[0].id;
+
+      // 2. Simpan gambar langsung ke PostgreSQL
+      await c.query(
+        `INSERT INTO book_covers (
+          book_id,
+          mime_type,
+          data
+        )
+        VALUES ($1, $2, $3)`,
+        [
+          bookId,
+          cover.mime,
+          cover.data,
+        ]
+      );
+
+      // 3. Hubungkan URL gambar dengan buku
+      await c.query(
+        `UPDATE books
+         SET sampul = $1
+         WHERE id = $2`,
+        [
+          `/api/covers/${bookId}?v=${Date.now()}`,
+          bookId,
+        ]
+      );
+
+    });
+
+    console.log(
+      '[DATABASE SUCCESS] Buku dan gambar berhasil disimpan.'
+    );
   });
 
   if (r?.error) return r;
@@ -265,91 +284,115 @@ export async function updateBook(_prev, fd) {
 
     const id = int(fd, 'id');
 
-    if (!Number.isInteger(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       throw new AppError('Buku tidak valid.');
     }
 
     const f = fields(fd);
+
+    // Gambar boleh kosong ketika edit
     const cover = await readCover(fd, false);
 
-    let newImagePath = null;
-    let oldImagePath = null;
+    await withTransaction(async (c) => {
 
-    // Simpan cover baru jika ada
-    if (cover) {
-      newImagePath = await saveBookImage(cover);
-    }
+      // 1. Ambil data buku lama
+      const { rows } = await c.query(
+        `SELECT
+          stok_total,
+          stok_tersedia,
+          sampul
+         FROM books
+         WHERE id=$1
+         FOR UPDATE`,
+        [id]
+      );
 
-    try {
-      await withTransaction(async (c) => {
-        const { rows } = await c.query(
-          `SELECT
-            stok_total,
-            stok_tersedia,
-            sampul
-          FROM books
-          WHERE id=$1
-          FOR UPDATE`,
-          [id]
+      if (!rows[0]) {
+        throw new AppError(
+          'Buku tidak ditemukan.'
         );
+      }
 
-        if (!rows[0]) {
-          throw new AppError('Buku tidak ditemukan.');
-        }
+      // 2. Hitung buku yang sedang dipinjam
+      const dipinjam =
+        rows[0].stok_total -
+        rows[0].stok_tersedia;
 
-        oldImagePath = rows[0].sampul;
+      if (f.stok < dipinjam) {
+        throw new AppError(
+          `Stok total tidak boleh kurang dari jumlah yang sedang dipinjam (${dipinjam}).`
+        );
+      }
 
-        const dipinjam =
-          rows[0].stok_total -
-          rows[0].stok_tersedia;
+      // 3. Perbarui informasi buku
+      await c.query(
+        `UPDATE books SET
+          category_id=$1,
+          judul=$2,
+          pengarang=$3,
+          penerbit=$4,
+          tahun_terbit=$5,
+          stok_total=$6,
+          stok_tersedia=$7,
+          durasi_maks_pinjam=$8,
+          denda_per_hari=$9,
+          updated_at=now()
+        WHERE id=$10`,
+        [
+          f.category,
+          f.judul,
+          f.pengarang,
+          f.penerbit,
+          f.tahun,
+          f.stok,
+          f.stok - dipinjam,
+          f.durasi,
+          f.denda,
+          id,
+        ]
+      );
 
-        if (f.stok < dipinjam) {
-          throw new AppError(
-            `Stok total tidak boleh kurang dari jumlah yang sedang dipinjam (${dipinjam}).`
-          );
-        }
+      // 4. Jika ada gambar baru, simpan ke PostgreSQL
+      if (cover) {
 
         await c.query(
-          `UPDATE books SET
-            category_id=$1,
-            judul=$2,
-            pengarang=$3,
-            penerbit=$4,
-            tahun_terbit=$5,
-            stok_total=$6,
-            stok_tersedia=$7,
-            durasi_maks_pinjam=$8,
-            denda_per_hari=$9,
-            sampul=$10,
-            updated_at=now()
-          WHERE id=$11`,
+          `INSERT INTO book_covers (
+            book_id,
+            mime_type,
+            data,
+            updated_at
+          )
+          VALUES ($1, $2, $3, NOW())
+
+          ON CONFLICT (book_id)
+          DO UPDATE SET
+            mime_type = EXCLUDED.mime_type,
+            data = EXCLUDED.data,
+            updated_at = NOW()`,
           [
-            f.category,
-            f.judul,
-            f.pengarang,
-            f.penerbit,
-            f.tahun,
-            f.stok,
-            f.stok - dipinjam,
-            f.durasi,
-            f.denda,
-            newImagePath || oldImagePath,
+            id,
+            cover.mime,
+            cover.data,
+          ]
+        );
+
+        // 5. Perbarui URL gambar
+        await c.query(
+          `UPDATE books
+           SET sampul = $1
+           WHERE id = $2`,
+          [
+            `/api/covers/${id}?v=${Date.now()}`,
             id,
           ]
         );
-      });
-    } catch (error) {
-      if (newImagePath) {
-        await cleanupCover(newImagePath);
       }
 
-      throw error;
-    }
+    });
 
-    // Hapus gambar lama setelah database berhasil diperbarui
-    if (newImagePath && oldImagePath) {
-      await cleanupCover(oldImagePath);
-    }
+    console.log(
+      '[DATABASE SUCCESS] Buku berhasil diperbarui.'
+    );
   });
 
   if (r?.error) return r;
@@ -371,33 +414,39 @@ export async function deleteBook(_prev, fd) {
 
     const id = int(fd, 'id');
 
-    if (!Number.isInteger(id)) {
-      throw new AppError('Buku tidak valid.');
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new AppError(
+        'Buku tidak valid.'
+      );
     }
-
-    let oldImagePath = null;
 
     try {
       await withTransaction(async (c) => {
+
+        // 1. Periksa apakah buku tersedia
         const { rows } = await c.query(
-          'SELECT sampul FROM books WHERE id=$1 FOR UPDATE',
+          `SELECT id
+           FROM books
+           WHERE id=$1
+           FOR UPDATE`,
           [id]
         );
 
         if (!rows[0]) {
-          throw new AppError('Buku tidak ditemukan.');
+          throw new AppError(
+            'Buku tidak ditemukan.'
+          );
         }
 
-        oldImagePath = rows[0].sampul;
-
+        // 2. Periksa transaksi peminjaman aktif
         const active = await c.query(
           `SELECT 1 FROM loans
-          WHERE book_id=$1
-          AND status IN (
-            'menunggu_konfirmasi',
-            'sedang_dipinjam'
-          )
-          LIMIT 1`,
+           WHERE book_id=$1
+           AND status IN (
+             'menunggu_konfirmasi',
+             'sedang_dipinjam'
+           )
+           LIMIT 1`,
           [id]
         );
 
@@ -407,10 +456,15 @@ export async function deleteBook(_prev, fd) {
           );
         }
 
+        // 3. Hapus buku
         await c.query(
           'DELETE FROM books WHERE id=$1',
           [id]
         );
+
+        // Gambar di book_covers otomatis terhapus
+        // melalui ON DELETE CASCADE.
+
       });
     } catch (error) {
       if (error.code === '23503') {
@@ -421,9 +475,6 @@ export async function deleteBook(_prev, fd) {
 
       throw error;
     }
-
-    // Hapus file gambar jika tidak digunakan buku lain
-    await cleanupCover(oldImagePath);
 
     revalidatePath('/');
     revalidatePath('/kelola/buku');
