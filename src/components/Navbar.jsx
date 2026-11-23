@@ -5,8 +5,8 @@ import LibraryIcon from '@/components/LibraryIcon';
 import LogoMark from '@/components/LogoMark';
 
 const LINKS = {
-  guest: [['/', 'Beranda'], ['/katalog', 'Katalog'], ['/pengumuman', 'Pengumuman']],
-  mahasiswa: [['/', 'Beranda'], ['/katalog', 'Katalog'], ['/mahasiswa', 'Pinjaman Saya'], ['/pengumuman', 'Pengumuman']],
+  guest: [['/', 'Beranda'], ['/katalog', 'Katalog'], ['/pengumuman', 'Pengumuman'], ['/tentang', 'Tentang']],
+  mahasiswa: [['/', 'Beranda'], ['/katalog', 'Katalog'], ['/mahasiswa', 'Pinjaman Saya'], ['/pengumuman', 'Pengumuman'], ['/tentang', 'Tentang']],
   pegawai: [['/pegawai', 'Dashboard'], ['/pegawai/sirkulasi', 'Sirkulasi'], ['/kelola/buku', 'Kelola Buku'], ['/kelola/pengumuman', 'Pengumuman'], ['/katalog', 'Katalog']],
   admin: [['/admin', 'Dashboard'], ['/admin/pengguna', 'Pengguna'], ['/admin/kategori', 'Kategori'], ['/kelola/buku', 'Buku'], ['/kelola/pengumuman', 'Pengumuman'], ['/admin/transaksi', 'Transaksi']],
 };
@@ -16,8 +16,11 @@ export default async function Navbar() {
   const links = LINKS[s?.role ?? 'guest'];
 
   const auth = s ? (
-    <div className="flex items-center gap-3">
-      <span className="hidden text-sm text-cream/80 lg:inline">{s.nama}</span>
+    <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:gap-3">
+      <span className="text-sm text-cream/90">
+        <span className="font-semibold">{s.nama}</span>
+        <span className="ml-1 text-xs capitalize text-gold">({s.role})</span>
+      </span>
       <form action={logoutAction}><button className="btn btn-gold btn-sm">Keluar</button></form>
     </div>
   ) : (
