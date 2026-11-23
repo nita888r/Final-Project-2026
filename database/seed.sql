@@ -18,82 +18,7 @@ INSERT INTO categories (nama_kategori, kode_klasifikasi, deskripsi) VALUES
     ('Sains Dasar', 'SD-500', 'Biologi, fisika, kimia, dan matematika');
 
 -- 3. DATA KOLEKSI BUKU
-INSERT INTO books 
-    ```sql
--- 3A. URL SAMPUL BUKU
-UPDATE books
-SET sampul = CASE isbn
-
-    WHEN '9780135957059' THEN '/uploads/books/1795202235243-9a01e1a9b3c2.jpg'
-    WHEN '9780078022159' THEN '/uploads/books/1795202093191-2c10f0c82fd9.jpg'
-    WHEN '9780136681557' THEN '/uploads/books/1795201971843-60799eaed4c2.jpg'
-    WHEN '9780262033848' THEN '/uploads/books/1795203170155-29c38718fad6.jpg'
-    WHEN '9780132350884' THEN '/uploads/books/1795201941363-5681ad7b5e9f.jpg'
-
-    WHEN '9789790072763' THEN '/uploads/books/1795203224579-0182d0076f1f.jpg'
-    WHEN '9789797695774' THEN '/uploads/books/1795202980629-84414d96fc7c.jpg'
-    WHEN '9789794146002' THEN '/uploads/books/1795203139890-680718f1e637.jpg'
-    WHEN '9789790980891' THEN '/uploads/books/1795201801394-df3254897ce0.jpg'
-    WHEN '9786024220228' THEN '/uploads/books/1795203348097-f923a52a07ce.jpg'
-
-    WHEN '9781264268504' THEN '/uploads/books/1795203077959-44a3a757c2bd.jpg'
-    WHEN '9780323353175' THEN '/uploads/books/1795203430504-da0cf2bf8956.jpg'
-    WHEN '9780323393225' THEN '/uploads/books/1795201823043-c650012f9ef4.jpg'
-    WHEN '9780702077050' THEN '/uploads/books/1795203019164-e7d35361a41d.jpg'
-    WHEN '9780323597128' THEN '/uploads/books/1795203054181-48b365d680a3.jpg'
-
-    WHEN '9780553213690' THEN '/uploads/books/1795202467920-dca27ac72488.jpg'
-    WHEN '9780451524935' THEN '/uploads/books/1795201552969-3acb3e25464b.jpg'
-    WHEN '9786024246945' THEN '/uploads/books/1795203298120-193b803d5f87.jpg'
-    WHEN '9789793062792' THEN '/uploads/books/1795203258199-b5348ad140cf.jpg'
-    WHEN '9789799731234' THEN '/uploads/books/1795201846126-4fa39f266fb4.jpg'
-
-    WHEN '9780857197689' THEN '/uploads/books/1795202193008-8f14c4fd4535.jpg'
-    WHEN '9780140445688' THEN '/uploads/books/1795202502874-160e2c62d5a3.jpg'
-    WHEN '9780679783367' THEN '/uploads/books/1795202042580-55ea0947a6b7.jpg'
-    WHEN '9781305585126' THEN '/uploads/books/1795203392869-9cee042af50b.jpg'
-    WHEN '9780060555665' THEN '/uploads/books/1795202159844-82667762326c.jpg'
-
-    WHEN '9780321775658' THEN '/uploads/books/1795201886169-8849df677bf1.jpg'
-    WHEN '9780134414232' THEN '/uploads/books/1795201913927-ceadd63e5d41.jpg'
-    WHEN '9781119801122' THEN '/uploads/books/1795202127711-f50a3f046d08.jpg'
-    WHEN '9780345539434' THEN '/uploads/books/1795202002206-527e10868941.jpg'
-    WHEN '9780553380163' THEN '/uploads/books/1795201659598-11484f12784b.jpg'
-
-    ELSE sampul
-END
-WHERE isbn IN (
-    '9780135957059',
-    '9780078022159',
-    '9780136681557',
-    '9780262033848',
-    '9780132350884',
-    '9789790072763',
-    '9789797695774',
-    '9789794146002',
-    '9789790980891',
-    '9786024220228',
-    '9781264268504',
-    '9780323353175',
-    '9780323393225',
-    '9780702077050',
-    '9780323597128',
-    '9780553213690',
-    '9780451524935',
-    '9786024246945',
-    '9789793062792',
-    '9789799731234',
-    '9780857197689',
-    '9780140445688',
-    '9780679783367',
-    '9781305585126',
-    '9780060555665',
-    '9780321775658',
-    '9780134414232',
-    '9781119801122',
-    '9780345539434',
-    '9780553380163'
-);
+INSERT INTO books
  (category_id, isbn, judul, pengarang, penerbit, tahun_terbit, stok_total, stok_tersedia, durasi_maks_pinjam, denda_per_hari, sampul)
 SELECT c.id, v.isbn, v.judul, v.pengarang, v.penerbit, v.tahun, v.stok, v.stok, v.durasi, v.denda, NULL
 FROM (VALUES
@@ -141,6 +66,74 @@ FROM (VALUES
 ) AS v (kode, isbn, judul, pengarang, penerbit, tahun, stok, durasi, denda)
 JOIN categories c ON c.kode_klasifikasi = v.kode;
 
+-- 3A. URL SAMPUL BUKU
+UPDATE books
+SET sampul = CASE isbn
+    WHEN '9780135957059' THEN '/uploads/books/1795202235243-9a01e1a9b3c2.jpg'
+    WHEN '9780078022159' THEN '/uploads/books/1795202093191-2c10f0c82fd9.jpg'
+    WHEN '9780136681557' THEN '/uploads/books/1795201971843-60799eaed4c2.jpg'
+    WHEN '9780262033848' THEN '/uploads/books/1795203170155-29c38718fad6.jpg'
+    WHEN '9780132350884' THEN '/uploads/books/1795201941363-5681ad7b5e9f.jpg'
+    WHEN '9789790072763' THEN '/uploads/books/1795203224579-0182d0076f1f.jpg'
+    WHEN '9789797695774' THEN '/uploads/books/1795202980629-84414d96fc7c.jpg'
+    WHEN '9789794146002' THEN '/uploads/books/1795203139890-680718f1e637.jpg'
+    WHEN '9789790980891' THEN '/uploads/books/1795201801394-df3254897ce0.jpg'
+    WHEN '9786024220228' THEN '/uploads/books/1795203348097-f923a52a07ce.jpg'
+    WHEN '9781264268504' THEN '/uploads/books/1795203077959-44a3a757c2bd.jpg'
+    WHEN '9780323353175' THEN '/uploads/books/1795203430504-da0cf2bf8956.jpg'
+    WHEN '9780323393225' THEN '/uploads/books/1795201823043-c650012f9ef4.jpg'
+    WHEN '9780702077050' THEN '/uploads/books/1795203019164-e7d35361a41d.jpg'
+    WHEN '9780323597128' THEN '/uploads/books/1795203054181-48b365d680a3.jpg'
+    WHEN '9780553213690' THEN '/uploads/books/1795202467920-dca27ac72488.jpg'
+    WHEN '9780451524935' THEN '/uploads/books/1795201552969-3acb3e25464b.jpg'
+    WHEN '9786024246945' THEN '/uploads/books/1795203298120-193b803d5f87.jpg'
+    WHEN '9789793062792' THEN '/uploads/books/1795203258199-b5348ad140cf.jpg'
+    WHEN '9789799731234' THEN '/uploads/books/1795201846126-4fa39f266fb4.jpg'
+    WHEN '9780857197689' THEN '/uploads/books/1795202193008-8f14c4fd4535.jpg'
+    WHEN '9780140445688' THEN '/uploads/books/1795202502874-160e2c62d5a3.jpg'
+    WHEN '9780679783367' THEN '/uploads/books/1795202042580-55ea0947a6b7.jpg'
+    WHEN '9781305585126' THEN '/uploads/books/1795203392869-9cee042af50b.jpg'
+    WHEN '9780060555665' THEN '/uploads/books/1795202159844-82667762326c.jpg'
+    WHEN '9780321775658' THEN '/uploads/books/1795201886169-8849df677bf1.jpg'
+    WHEN '9780134414232' THEN '/uploads/books/1795201913927-ceadd63e5d41.jpg'
+    WHEN '9781119801122' THEN '/uploads/books/1795202127711-f50a3f046d08.jpg'
+    WHEN '9780345539434' THEN '/uploads/books/1795202002206-527e10868941.jpg'
+    WHEN '9780553380163' THEN '/uploads/books/1795201659598-11484f12784b.jpg'
+    ELSE sampul
+END
+WHERE isbn IN (
+    '9780135957059',
+    '9780078022159',
+    '9780136681557',
+    '9780262033848',
+    '9780132350884',
+    '9789790072763',
+    '9789797695774',
+    '9789794146002',
+    '9789790980891',
+    '9786024220228',
+    '9781264268504',
+    '9780323353175',
+    '9780323393225',
+    '9780702077050',
+    '9780323597128',
+    '9780553213690',
+    '9780451524935',
+    '9786024246945',
+    '9789793062792',
+    '9789799731234',
+    '9780857197689',
+    '9780140445688',
+    '9780679783367',
+    '9781305585126',
+    '9780060555665',
+    '9780321775658',
+    '9780134414232',
+    '9781119801122',
+    '9780345539434',
+    '9780553380163'
+);
+
 -- 4. DATA PENGUMUMAN
 INSERT INTO announcements (judul, konten, kategori, tanggal_rilis, status, created_by)
 SELECT v.judul, v.konten, v.kat, CURRENT_DATE - v.hari, v.status, u.id
@@ -179,7 +172,7 @@ CROSS JOIN books b
 WHERE u.email = 'aura@student.ac.id' AND b.isbn = '9789799731234';
 
 -- 7. DATA DENDA
--- Budi terlambat mengembalikan buku selama 5 hari.
+-- Aura terlambat mengembalikan buku selama 5 hari (denda tertunggak, pinjam baru diblokir).
 INSERT INTO fines (loan_id, hari_terlambat, tarif_per_hari, jumlah_denda, status, dicatat_oleh)
 SELECT l.id, 5, b.denda_per_hari, 5 * b.denda_per_hari, 'tertunggak', p.id
 FROM loans l
@@ -220,3 +213,5 @@ ORDER BY c.nama_kategori;
 SELECT COUNT(*) AS total_koleksi FROM books;
 
 
+-- Daftar buku beserta sampul
+SELECT id, judul, sampul FROM books ORDER BY id;
