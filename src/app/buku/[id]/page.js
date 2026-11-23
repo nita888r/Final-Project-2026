@@ -24,10 +24,15 @@ export default async function BukuDetail({ params }) {
   );
 
   const s = await getSession();
-  let blocked = false, aktif = false;
+  let blocked = false, aktif = false, ulasLoanId = null;
   if (s?.role === 'mahasiswa') {
     blocked = (await query(`SELECT 1 FROM fines f JOIN loans l ON l.id=f.loan_id WHERE l.user_id=$1 AND f.status='tertunggak' LIMIT 1`, [s.id])).length > 0;
     aktif = (await query(`SELECT 1 FROM loans WHERE user_id=$1 AND book_id=$2 AND status IN ('menunggu_konfirmasi','sedang_dipinjam')`, [s.id, id])).length > 0;
+    const belumUlas = await query(
+      `SELECT l.id FROM loans l WHERE l.user_id=$1 AND l.book_id=$2 AND l.status='selesai'
+         AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.loan_id=l.id) ORDER BY l.id DESC LIMIT 1`, [s.id, id]
+    );
+    ulasLoanId = belumUlas[0]?.id ?? null;
   }
 
   const meta = [
@@ -63,7 +68,10 @@ export default async function BukuDetail({ params }) {
               </div>
             ))}
           </dl>
-          <div className="mt-6">{aksi}</div>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {aksi}
+            {ulasLoanId && <Link href={`/ulasan/${ulasLoanId}`} className="btn btn-gold">Tulis Ulasan</Link>}
+          </div>
         </div>
       </div>
 
