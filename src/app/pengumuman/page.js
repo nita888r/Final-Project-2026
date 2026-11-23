@@ -1,13 +1,18 @@
 import Link from 'next/link';
 import { query } from '@/lib/db';
-import { fmtDate } from '@/lib/utils';
+import { fmtDate, pageOf, paginate } from '@/lib/utils';
+import { ANNOUNCE_PAGE_SIZE } from '@/lib/config';
+import Pagination from '@/components/Pagination';
 
 export const metadata = { title: 'Pengumuman – RUANG AKSARA' };
 
-export default async function PengumumanList() {
+export default async function PengumumanList({ searchParams }) {
+  const [{ total }] = await query(`SELECT COUNT(*) AS total FROM announcements WHERE status='published' AND tanggal_rilis <= CURRENT_DATE`);
+  const { page, totalPages, offset } = paginate(total, ANNOUNCE_PAGE_SIZE, pageOf(searchParams));
   const rows = await query(
     `SELECT id, judul, konten, kategori, tanggal_rilis FROM announcements
-     WHERE status='published' AND tanggal_rilis <= CURRENT_DATE ORDER BY tanggal_rilis DESC, id DESC`
+     WHERE status='published' AND tanggal_rilis <= CURRENT_DATE ORDER BY tanggal_rilis DESC, id DESC
+     LIMIT ${ANNOUNCE_PAGE_SIZE} OFFSET $1`, [offset]
   );
   return (
     <div>
@@ -24,6 +29,7 @@ export default async function PengumumanList() {
           ))}
         </div>
       )}
+      <Pagination basePath="/pengumuman" page={page} totalPages={totalPages} />
     </div>
   );
 }
