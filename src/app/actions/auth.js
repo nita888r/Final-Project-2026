@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { query } from '@/lib/db';
 import { createSession, destroySession } from '@/lib/session';
 import { safe, AppError, str } from '@/lib/utils';
-import { EMAIL_KAMPUS_REGEX } from '@/lib/config';
+import { EMAIL_KAMPUS_REGEX, ID_MAX_LENGTH } from '@/lib/config';
 
 const HOME = { admin: '/admin', pegawai: '/pegawai', mahasiswa: '/mahasiswa' };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,6 +45,7 @@ export async function registerAction(_prev, fd) {
     if (!EMAIL_KAMPUS_REGEX.test(email)) {
       throw new AppError('Gunakan email kampus (berakhiran .ac.id atau .edu).');
     }
+    if (nim.length > ID_MAX_LENGTH) throw new AppError(`NIM maksimal ${ID_MAX_LENGTH} karakter.`);
     if (password.length < 6) throw new AppError('Password minimal 6 karakter.');
     if (password !== konfirmasi) throw new AppError('Konfirmasi password tidak sama.');
 

@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { query } from '@/lib/db';
 import { requireRole } from '@/lib/session';
 import { safe, AppError, str, int } from '@/lib/utils';
-import { ROLES } from '@/lib/config';
+import { ROLES, EMAIL_KAMPUS_REGEX, ID_MAX_LENGTH } from '@/lib/config';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -22,6 +22,10 @@ function readFields(fd, { needPassword }) {
   if (!f.nama || !f.email || !f.nim || !f.role) throw new AppError('Semua data wajib diisi.');
   if (!EMAIL_RE.test(f.email)) throw new AppError('Format email tidak valid.');
   if (!ROLES.includes(f.role)) throw new AppError('Role tidak valid.');
+  if (f.role === 'mahasiswa' && !EMAIL_KAMPUS_REGEX.test(f.email)) {
+    throw new AppError('Akun Mahasiswa wajib memakai email kampus (berakhiran .ac.id atau .edu).');
+  }
+  if (f.nim.length > ID_MAX_LENGTH) throw new AppError(`Nomor identitas maksimal ${ID_MAX_LENGTH} karakter.`);
   if (needPassword && !f.password) throw new AppError('Password wajib diisi.');
   if (f.password && f.password.length < 6) throw new AppError('Password minimal 6 karakter.');
   return f;
