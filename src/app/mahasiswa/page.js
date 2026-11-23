@@ -1,16 +1,19 @@
 import Link from 'next/link';
 import { query } from '@/lib/db';
 import { requirePage } from '@/lib/session';
-import { fmtDate, rupiah } from '@/lib/utils';
-import { MAKS_PERPANJANGAN } from '@/lib/config';
+import { fmtDate, rupiah, pageOf, paginate } from '@/lib/utils';
+import Pagination from '@/components/Pagination';
+import { MAKS_PERPANJANGAN, TABLE_PAGE_SIZE } from '@/lib/config';
 import Badge from '@/components/Badge';
 import ActionForm, { SubmitButton } from '@/components/ActionForm';
 import { ajukanPerpanjangan } from '@/app/actions/loans';
 
 export const metadata = { title: 'Pinjaman Saya – RUANG AKSARA' };
 
-export default async function MahasiswaDashboard() {
+export default async function MahasiswaDashboard({ searchParams }) {
   const s = await requirePage(['mahasiswa']);
+  const [{ n: nRiwayat }] = await query(`SELECT COUNT(*) AS n FROM loans WHERE user_id=$1 AND status IN ('selesai','ditolak')`, [s.id]);
+  const pr = paginate(nRiwayat, TABLE_PAGE_SIZE, pageOf(searchParams, 'pr'));
 
   const aktif = await query(
     `SELECT l.id, l.kode_pinjam, l.status, l.jatuh_tempo, l.status_perpanjangan, l.jumlah_perpanjangan, l.tanggal_pengajuan,
@@ -31,7 +34,7 @@ export default async function MahasiswaDashboard() {
             f.jumlah_denda, f.status AS status_denda, (r.id IS NOT NULL) AS sudah_ulas
      FROM loans l JOIN books b ON b.id=l.book_id
      LEFT JOIN fines f ON f.loan_id=l.id LEFT JOIN reviews r ON r.loan_id=l.id
-     WHERE l.user_id=$1 AND l.status IN ('selesai','ditolak') ORDER BY l.updated_at DESC`, [s.id]
+     WHERE l.user_id=$1 AND l.status IN ('selesai','ditolak') ORDER BY l.updated_at DESC LIMIT ${TABLE_PAGE_SIZE} OFFSET $2`, [s.id, pr.offset]
   );
   const totalDenda = denda.reduce((a, d) => a + d.jumlah_denda, 0);
 
@@ -98,6 +101,7 @@ export default async function MahasiswaDashboard() {
             </tbody>
           </table></div>
         )}
+        <Pagination basePath="/mahasiswa" page={pr.page} totalPages={pr.totalPages} pageParam="pr" />
       </section>
     </div>
   );
