@@ -68,3 +68,19 @@ export const LABELS = {
 export function currentYear() {
   return new Date().getFullYear();
 }
+
+// ---------- Paginasi ----------
+export function pageOf(sp, key = 'page') {
+  return Math.max(1, parseInt(sp?.[key] ?? '1', 10) || 1);
+}
+export function paginate(total, size, requested) {
+  const totalPages = Math.max(1, Math.ceil(Number(total) / size));
+  const page = Math.min(requested, totalPages);
+  return { page, totalPages, offset: (page - 1) * size };
+}
+// Tanggal YYYY-MM-DD yang benar-benar ada di kalender
+export function validDate(v) {
+  if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return '';
+  const d = new Date(v + 'T00:00:00Z');
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v ? v : '';
+}
