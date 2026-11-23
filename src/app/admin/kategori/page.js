@@ -1,17 +1,22 @@
 import Link from 'next/link';
 import { query } from '@/lib/db';
 import { requirePage } from '@/lib/session';
+import { TABLE_PAGE_SIZE } from '@/lib/config';
+import { pageOf, paginate } from '@/lib/utils';
+import Pagination from '@/components/Pagination';
 import CategoryForm from '@/components/CategoryForm';
 import ActionForm, { SubmitButton } from '@/components/ActionForm';
 import { createCategory, deleteCategory } from '@/app/actions/categories';
 
 export const metadata = { title: 'Kelola Kategori – RUANG AKSARA' };
 
-export default async function Kategori() {
+export default async function Kategori({ searchParams }) {
   await requirePage(['admin']);
+  const [{ total }] = await query('SELECT COUNT(*) AS total FROM categories');
+  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(searchParams));
   const rows = await query(
     `SELECT c.*, COUNT(b.id) AS jumlah_buku FROM categories c LEFT JOIN books b ON b.category_id=c.id
-     GROUP BY c.id ORDER BY c.nama_kategori`
+     GROUP BY c.id ORDER BY c.nama_kategori LIMIT ${TABLE_PAGE_SIZE} OFFSET $1`, [offset]
   );
   return (
     <div className="space-y-6">
@@ -36,6 +41,7 @@ export default async function Kategori() {
           ))}
         </tbody>
       </table></div>
+      <Pagination basePath="/admin/kategori" page={page} totalPages={totalPages} />
     </div>
   );
 }
