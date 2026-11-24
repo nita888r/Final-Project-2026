@@ -5,8 +5,14 @@ import { query } from '@/lib/db';
 import { AppError } from '@/lib/utils';
 
 export async function createSession(user) {
-  const token = await signToken({ id: user.id, role: user.role, nama: user.nama_lengkap });
-  cookies().set(COOKIE_NAME, token, {
+  const token = await signToken({
+    id: user.id,
+    role: user.role,
+    nama: user.nama_lengkap,
+  });
+
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -15,25 +21,31 @@ export async function createSession(user) {
   });
 }
 
-export function destroySession() {
-  cookies().delete(COOKIE_NAME);
+export async function destroySession() {
+  const cookieStore = await cookies();
+  cookieStore.delete(COOKIE_NAME);
 }
 
 export async function getSession() {
-  const token = cookies().get(COOKIE_NAME)?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
+
   const p = await verifyToken(token);
   return p ? { id: Number(p.id), role: p.role, nama: p.nama } : null;
 }
 
-// Untuk Server Action / Route Handler: cek sesi + role + akun masih aktif (langsung ke database).
 export async function requireRole(roles) {
   const s = await getSession();
-  if (!s || !roles.includes(s.role)) throw new AppError('Akses ditolak. Masuk dengan akun yang sesuai.');
+  if (!s || !roles.includes(s.role)) {
+    throw new AppError('Akses ditolak. Masuk dengan akun yang sesuai.');
+  }
+
   const rows = await query('SELECT is_active, role FROM users WHERE id = $1', [s.id]);
   if (!rows[0] || !rows[0].is_active || !roles.includes(rows[0].role)) {
     throw new AppError('Akun tidak aktif atau tidak berwenang.');
   }
+
   return s;
 }
 
