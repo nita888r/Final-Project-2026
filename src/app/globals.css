@@ -1,6 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #F5ECD9;
+  --color-creamdark: #E8DAB9;
+  --color-brown: #4A2F1D;
+  --color-bottle: #2F4F3E;
+  --color-gold: #C9A24B;
+  --color-brick: #8C382B;
+  --color-ink: #252522;
+
+  --font-sans: var(--font-dm), system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, serif;
+}
 
 @layer base {
   body { @apply bg-cream font-sans text-ink antialiased; }
