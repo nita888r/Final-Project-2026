@@ -53,7 +53,7 @@ export default async function Katalog({ searchParams }) {
         </select>
         <button className="btn btn-primary">Terapkan</button>
       </form>
-      {shelf.length > 0 && <section className="catalog-shelf"><h2>Rak buku pilihan</h2><BookShelf books={shelf} /></section>}
+      {!q && !kategori && shelf.length > 0 && <section className="catalog-shelf"><h2>Rak buku pilihan</h2><BookShelf books={shelf} /></section>}
       <p className="mb-3 text-sm text-ink/70">{total} buku ditemukan</p>
       {books.length === 0 ? (
         <p className="card">Tidak ada buku yang cocok. Coba kata kunci atau kategori lain.</p>

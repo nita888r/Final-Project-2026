@@ -1,108 +1,68 @@
 import Link from 'next/link';
+import BookShelf from '@/components/BookShelf';
 import { query } from '@/lib/db';
-import { requirePage } from '@/lib/session';
-import { fmtDate, rupiah, pageOf, paginate } from '@/lib/utils';
+import { PAGE_SIZE } from '@/lib/config';
+import BookCard from '@/components/BookCard';
 import Pagination from '@/components/Pagination';
-import { MAKS_PERPANJANGAN, TABLE_PAGE_SIZE } from '@/lib/config';
-import Badge from '@/components/Badge';
-import ActionForm, { SubmitButton } from '@/components/ActionForm';
-import { ajukanPerpanjangan } from '@/app/actions/loans';
 
-export const metadata = { title: 'Pinjaman Saya – RUANG AKSARA' };
+export const metadata = { title: 'Katalog – RUANG AKSARA' };
 
-export default async function MahasiswaDashboard({ searchParams }) {
-  const s = await requirePage(['mahasiswa']);
-  const [{ n: nRiwayat }] = await query(`SELECT COUNT(*) AS n FROM loans WHERE user_id=$1 AND status IN ('selesai','ditolak')`, [s.id]);
-  const pr = paginate(nRiwayat, TABLE_PAGE_SIZE, pageOf(searchParams, 'pr'));
+const SORTS = {
+  terbaru: ['Tahun terbit terbaru', 'b.tahun_terbit DESC, b.judul'],
+  terlama: ['Tahun terbit terlama', 'b.tahun_terbit ASC, b.judul'],
+  rating: ['Rating tertinggi', 'rata_rating DESC, b.judul'],
+  judul: ['Judul A-Z', 'b.judul ASC'],
+};
 
-  const aktif = await query(
-    `SELECT l.id, l.kode_pinjam, l.status, l.jatuh_tempo, l.status_perpanjangan, l.jumlah_perpanjangan, l.tanggal_pengajuan,
-            b.id AS book_id, b.judul, b.denda_per_hari,
-            GREATEST(0, CURRENT_DATE - l.jatuh_tempo) AS hari_terlambat,
-            (l.status='sedang_dipinjam' AND l.jatuh_tempo < CURRENT_DATE) AS terlambat
-     FROM loans l JOIN books b ON b.id=l.book_id
-     WHERE l.user_id=$1 AND l.status IN ('menunggu_konfirmasi','sedang_dipinjam')
-     ORDER BY l.tanggal_pengajuan DESC`, [s.id]
+export default async function Katalog({ searchParams }) {
+  const q = (searchParams.q ?? '').trim();
+  const kategori = Number.isInteger(Number(searchParams.kategori)) && searchParams.kategori ? Number(searchParams.kategori) : null;
+  const sort = SORTS[searchParams.sort] ? searchParams.sort : 'terbaru';
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
+
+  const where = `($1::text = '' OR b.judul ILIKE $2 OR b.pengarang ILIKE $2) AND ($3::bigint IS NULL OR b.category_id = $3)`;
+  const params = [q, `%${q}%`, kategori];
+
+  const [{ total }] = await query(`SELECT COUNT(*) AS total FROM books b WHERE ${where}`, params);
+  const books = await query(
+    `SELECT b.id, b.judul, b.pengarang, b.sampul, b.stok_tersedia, b.tahun_terbit, c.nama_kategori,
+            COALESCE(ROUND(AVG(r.rating),1),0) AS rata_rating
+     FROM books b JOIN categories c ON c.id=b.category_id LEFT JOIN reviews r ON r.book_id=b.id
+     WHERE ${where}
+     GROUP BY b.id, c.nama_kategori
+     ORDER BY ${SORTS[sort][1]}
+     LIMIT ${PAGE_SIZE} OFFSET $4`,
+    [...params, (page - 1) * PAGE_SIZE]
   );
-  const denda = await query(
-    `SELECT f.id, f.jumlah_denda, f.hari_terlambat, b.judul
-     FROM fines f JOIN loans l ON l.id=f.loan_id JOIN books b ON b.id=l.book_id
-     WHERE l.user_id=$1 AND f.status='tertunggak' ORDER BY f.created_at`, [s.id]
-  );
-  const riwayat = await query(
-    `SELECT l.id, l.kode_pinjam, l.status, l.alasan_penolakan, l.tanggal_pinjam, l.tanggal_kembali, b.id AS book_id, b.judul,
-            f.jumlah_denda, f.status AS status_denda, (r.id IS NOT NULL) AS sudah_ulas
-     FROM loans l JOIN books b ON b.id=l.book_id
-     LEFT JOIN fines f ON f.loan_id=l.id LEFT JOIN reviews r ON r.loan_id=l.id
-     WHERE l.user_id=$1 AND l.status IN ('selesai','ditolak') ORDER BY l.updated_at DESC LIMIT ${TABLE_PAGE_SIZE} OFFSET $2`, [s.id, pr.offset]
-  );
-  const totalDenda = denda.reduce((a, d) => a + d.jumlah_denda, 0);
+  const categories = await query('SELECT id, nama_kategori FROM categories ORDER BY nama_kategori');
 
+  const selected = categories.find(c => Number(c.id) === kategori);
+  const shelf = await query(`SELECT b.id, b.judul, b.sampul FROM books b LEFT JOIN loans l ON l.book_id=b.id AND l.status IN ('sedang_dipinjam','selesai') WHERE ${where} GROUP BY b.id ORDER BY COUNT(l.id) DESC, b.judul LIMIT 5`, params);
   return (
-    <div className="space-y-8">
-      <h1>Halo, {s.nama}</h1>
-
-      {denda.length > 0 && (
-        <section className="rounded-lg border-2 border-brick bg-brick/10 p-5" role="alert">
-          <h2 className="!text-brick">Denda tertunggak: {rupiah(totalDenda)}</h2>
-          <p className="mt-1 text-sm">Peminjaman baru diblokir sampai denda dilunasi di meja sirkulasi.</p>
-          <ul className="mt-3 space-y-1 text-sm">
-            {denda.map((d) => <li key={d.id}>{d.judul}: terlambat {d.hari_terlambat} hari, {rupiah(d.jumlah_denda)}</li>)}
-          </ul>
-        </section>
+    <div className="catalog-page">
+      <Link href="/" className="collection-back">← Semua koleksi</Link>
+      <div className="collection-intro"><h1>{selected?.nama_kategori || 'Katalog Buku'}</h1><p>Temukan bacaan favoritmu.</p></div>
+      <form className="card mb-6 grid gap-3 md:grid-cols-[1fr_200px_200px_auto]">
+        <input name="q" defaultValue={q} className="input" placeholder="Judul atau pengarang" aria-label="Cari" />
+        <select name="kategori" defaultValue={kategori ?? ''} className="input" aria-label="Kategori">
+          <option value="">Semua kategori</option>
+          {categories.map((c) => <option key={c.id} value={c.id}>{c.nama_kategori}</option>)}
+        </select>
+        <select name="sort" defaultValue={sort} className="input" aria-label="Urutkan">
+          {Object.entries(SORTS).map(([k, [label]]) => <option key={k} value={k}>{label}</option>)}
+        </select>
+        <button className="btn btn-primary">Terapkan</button>
+      </form>
+      {shelf.length > 0 && <section className="catalog-shelf"><h2>Rak buku pilihan</h2><BookShelf books={shelf} /></section>}
+      <p className="mb-3 text-sm text-ink/70">{total} buku ditemukan</p>
+      {books.length === 0 ? (
+        <p className="card">Tidak ada buku yang cocok. Coba kata kunci atau kategori lain.</p>
+      ) : (
+        <div className="catalog-grid grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+          {books.map((b) => <BookCard key={b.id} b={b} />)}
+        </div>
       )}
-
-      <section>
-        <h2 className="mb-3">Pinjaman aktif</h2>
-        {aktif.length === 0 ? (
-          <p className="card text-sm">Tidak ada pinjaman aktif. <Link href="/katalog" className="text-bottle underline">Cari buku di katalog</Link>.</p>
-        ) : (
-          <div className="table-wrap"><table className="table">
-            <thead><tr><th>Buku</th><th>Status</th><th>Jatuh tempo</th><th>Perpanjangan</th><th>Aksi</th></tr></thead>
-            <tbody>
-              {aktif.map((l) => (
-                <tr key={l.id}>
-                  <td><Link href={`/buku/${l.book_id}`} className="font-medium text-brown underline">{l.judul}</Link><div className="text-xs text-ink/60">{l.kode_pinjam}</div></td>
-                  <td><Badge status={l.terlambat ? 'terlambat' : l.status} />
-                    {l.terlambat && <div className="mt-1 text-xs text-brick">{l.hari_terlambat} hari, denda berjalan {rupiah(l.hari_terlambat * l.denda_per_hari)}</div>}</td>
-                  <td>{l.status === 'sedang_dipinjam' ? fmtDate(l.jatuh_tempo) : 'Menunggu persetujuan Pegawai'}</td>
-                  <td>{l.status_perpanjangan !== 'tidak_ada' ? <Badge status={l.status_perpanjangan} /> : '-'}</td>
-                  <td>
-                    {l.status === 'sedang_dipinjam' && !l.terlambat && l.jumlah_perpanjangan < MAKS_PERPANJANGAN && l.status_perpanjangan !== 'perpanjangan_diajukan' && (
-                      <ActionForm action={ajukanPerpanjangan}>
-                        <input type="hidden" name="loanId" value={l.id} />
-                        <SubmitButton className="btn btn-outline btn-sm">Ajukan Perpanjangan</SubmitButton>
-                      </ActionForm>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table></div>
-        )}
-      </section>
-
-      <section>
-        <h2 className="mb-3">Riwayat transaksi</h2>
-        {riwayat.length === 0 ? <p className="card text-sm">Belum ada riwayat.</p> : (
-          <div className="table-wrap"><table className="table">
-            <thead><tr><th>Buku</th><th>Status</th><th>Dipinjam</th><th>Dikembalikan</th><th>Denda</th><th>Ulasan</th></tr></thead>
-            <tbody>
-              {riwayat.map((l) => (
-                <tr key={l.id}>
-                  <td><Link href={`/buku/${l.book_id}`} className="underline">{l.judul}</Link><div className="text-xs text-ink/60">{l.kode_pinjam}</div></td>
-                  <td><Badge status={l.status} />{l.alasan_penolakan && <div className="mt-1 text-xs text-brick">{l.alasan_penolakan}</div>}</td>
-                  <td>{fmtDate(l.tanggal_pinjam)}</td>
-                  <td>{fmtDate(l.tanggal_kembali)}</td>
-                  <td>{l.jumlah_denda ? <>{rupiah(l.jumlah_denda)} <Badge status={l.status_denda} /></> : '-'}</td>
-                  <td>{l.status === 'selesai' ? (l.sudah_ulas ? <span className="text-xs text-bottle">Sudah diulas</span> : <Link href={`/ulasan/${l.id}`} className="btn btn-gold btn-sm">Tulis Ulasan</Link>) : '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table></div>
-        )}
-        <Pagination basePath="/mahasiswa" page={pr.page} totalPages={pr.totalPages} pageParam="pr" />
-      </section>
+      <Pagination basePath="/katalog" params={{ q, kategori: kategori ?? '', sort }} page={page} totalPages={Math.ceil(total / PAGE_SIZE)} />
     </div>
   );
 }

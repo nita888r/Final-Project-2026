@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Toast from '@/components/Toast';
 import { Suspense } from 'react';
 import Footer from '@/components/Footer';
+import { getSession } from '@/lib/session';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -22,12 +23,14 @@ export const metadata = {
   description: 'Tempat setiap ilmu menemukan pembacanya.',
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await getSession();
+
   return (
     <html lang="id" className={`${playfair.variable} ${dmSans.variable}`}>
       <body className="flex min-h-screen flex-col">
 
-        <Navbar />
+        <Navbar session={session} />
 
         <Suspense fallback={null}>
           <Toast />

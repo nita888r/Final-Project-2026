@@ -33,12 +33,12 @@ export default async function PegawaiDashboard({ searchParams }) {
     <div className="space-y-8">
       <h1>Dashboard Pegawai</h1>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Link href="/pegawai/sirkulasi" className="card hover:border-gold"><h3>Meja sirkulasi</h3><p className="text-sm">Pengembalian dan pelunasan denda</p></Link>
+        <Link href="/pegawai/sirkulasi" className="card hover:border-gold"><h3>Manajemen Peminjaman</h3><p className="text-sm">Pengembalian buku dan pelunasan denda</p></Link>
         <Link href="/kelola/buku" className="card hover:border-gold"><h3>Kelola buku</h3><p className="text-sm">Koleksi dan stok</p></Link>
         <Link href="/kelola/pengumuman" className="card hover:border-gold"><h3>Kelola pengumuman</h3><p className="text-sm">Agenda dan berita</p></Link>
       </div>
       {ringkas.n > 0 && (
-        <p className="alert alert-error">Ada {ringkas.n} denda tertunggak senilai {rupiah(ringkas.total)}. <Link href="/pegawai/sirkulasi" className="underline">Buka meja sirkulasi</Link></p>
+        <p className="alert alert-error">Ada {ringkas.n} denda tertunggak senilai {rupiah(ringkas.total)}. <Link href="/pegawai/sirkulasi" className="underline">Buka manajemen peminjaman</Link></p>
       )}
 
       <section>

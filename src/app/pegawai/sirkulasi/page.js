@@ -7,7 +7,7 @@ import Badge from '@/components/Badge';
 import ActionForm, { SubmitButton } from '@/components/ActionForm';
 import { konfirmasiPengembalian, catatLunas } from '@/app/actions/loans';
 
-export const metadata = { title: 'Meja Sirkulasi – RUANG AKSARA' };
+export const metadata = { title: 'Manajemen Peminjaman – RUANG AKSARA' };
 
 export default async function Sirkulasi({ searchParams }) {
   await requirePage(['pegawai']);
@@ -41,7 +41,7 @@ export default async function Sirkulasi({ searchParams }) {
 
   return (
     <div className="space-y-8">
-      <h1>Meja Sirkulasi</h1>
+      <div><h1>Manajemen Peminjaman</h1><p className="text-sm text-ink/60">Kelola pengembalian buku dan pelunasan denda mahasiswa.</p></div>
       <form className="card flex flex-col gap-2 sm:flex-row">
         <input name="q" defaultValue={q} className="input" placeholder="Cari kode pinjam, nama, NIM, atau judul" aria-label="Cari transaksi" />
         <button className="btn btn-primary">Cari</button>

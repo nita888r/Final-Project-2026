@@ -5,11 +5,48 @@ import Link from 'next/link';
 import ActionForm, { SubmitButton } from '@/components/ActionForm';
 import { loginAction, registerAction } from '@/app/actions/auth';
 
-function Field({ id, label, ...props }) {
+function Field({ id, label, type, ...props }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
+
   return (
     <div className="ra-field">
       <label htmlFor={id}>{label}</label>
-      <input id={id} required {...props} />
+      {isPassword ? (
+        <div className="ra-password-wrap">
+          <input
+            id={id}
+            required
+            type={showPassword ? 'text' : 'password'}
+            className="ra-password-input"
+            {...props}
+          />
+          <button
+            type="button"
+            className="ra-password-toggle"
+            onClick={() => setShowPassword((value) => !value)}
+            aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+            aria-pressed={showPassword}
+            title={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+          >
+            {showPassword ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 3l18 18" />
+                <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5.5 0 9 7 9 7a14 14 0 0 1-3.1 3.8" />
+                <path d="M6.2 6.2C3.8 7.8 3 12 3 12s3.5 7 9 7a10 10 0 0 0 3-.5" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
+      ) : (
+        <input id={id} required type={type} {...props} />
+      )}
     </div>
   );
 }
@@ -380,6 +417,49 @@ export default function AuthPanel({ initialRegister = false }) {
 
           box-shadow:
             0 0 0 3px rgba(201, 162, 75, 0.16);
+        }
+
+        /* SHOW / HIDE PASSWORD */
+        .aksara-auth-final .ra-password-wrap {
+          position: relative;
+          width: 100%;
+        }
+
+        .aksara-auth-final .ra-field .ra-password-input {
+          padding-right: 46px;
+        }
+
+        .aksara-auth-final .ra-password-toggle {
+          position: absolute;
+          top: 50%;
+          right: 10px;
+          display: flex;
+          width: 30px;
+          height: 30px;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          color: var(--ra-muted);
+          background: transparent;
+          border: 0;
+          border-radius: 6px;
+          cursor: pointer;
+          transform: translateY(-50%);
+        }
+
+        .aksara-auth-final .ra-password-toggle svg {
+          width: 19px;
+          height: 19px;
+        }
+
+        .aksara-auth-final .ra-password-toggle:hover {
+          color: var(--ra-green);
+          background: rgba(201, 162, 75, 0.14);
+        }
+
+        .aksara-auth-final .ra-password-toggle:focus-visible {
+          outline: 2px solid var(--ra-gold-dark);
+          outline-offset: 2px;
         }
 
         /* TOMBOL SUBMIT */
