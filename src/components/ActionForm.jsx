@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { showToast } from '@/lib/toast';
 
 export function SubmitButton({ children, className = 'btn btn-primary', pendingText = 'Memproses...', confirmText }) {
@@ -25,7 +26,7 @@ export default function ActionForm({ action, children, className = '' }) {
     if (res?.success) showToast(res.success);
     return res;
   };
-  const [state, formAction] = useFormState(wrapped, null);
+  const [state, formAction] = useActionState(wrapped, null);
   return (
     <form action={formAction} className={className}>
       {state?.error && <div role="alert" className="alert alert-error">{state.error}</div>}
