@@ -12,7 +12,7 @@ export default function Pagination({ basePath, params = {}, page, totalPages, pa
     return qs ? `${basePath}?${qs}` : basePath;
   };
   return (
-    <nav className="mt-4 flex items-center justify-center gap-3 text-sm" aria-label="Halaman">
+    <nav className="!mt-12 flex items-center justify-center gap-3 text-sm" aria-label="Halaman">
       {page > 1 ? <Link className="btn btn-outline btn-sm" href={href(page - 1)}>Sebelumnya</Link> : <span />}
       <span>Halaman {page} dari {totalPages}</span>
       {page < totalPages ? <Link className="btn btn-outline btn-sm" href={href(page + 1)}>Berikutnya</Link> : <span />}

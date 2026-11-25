@@ -43,17 +43,36 @@ export default async function Katalog({ searchParams }) {
     <div className="catalog-page">
       <Link href="/" className="collection-back">← Semua koleksi</Link>
       <div className="collection-intro"><h1>{selected?.nama_kategori || 'Katalog Buku'}</h1><p>Temukan bacaan favoritmu.</p></div>
-      <form className="card mb-6 grid gap-3 md:grid-cols-[1fr_200px_200px_auto]">
-        <input name="q" defaultValue={q} className="input" placeholder="Judul atau pengarang" aria-label="Cari" />
-        <select name="kategori" defaultValue={kategori ?? ''} className="input" aria-label="Kategori">
+
+      {/* Kotak pencarian dibuat lebih gemuk dengan padding & tinggi yang lebih tebal */}
+      <form className="card mb-6 p-5 grid gap-3.5 md:grid-cols-[1fr_210px_210px_auto] items-center">
+        <input
+          name="q"
+          defaultValue={q}
+          className="input !py-3.5 !px-4 !text-base"
+          placeholder="Judul atau pengarang"
+          aria-label="Cari"
+        />
+        <select
+          name="kategori"
+          defaultValue={kategori ?? ''}
+          className="input !py-3.5 !px-4 !text-base"
+          aria-label="Kategori"
+        >
           <option value="">Semua kategori</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.nama_kategori}</option>)}
         </select>
-        <select name="sort" defaultValue={sort} className="input" aria-label="Urutkan">
+        <select
+          name="sort"
+          defaultValue={sort}
+          className="input !py-3.5 !px-4 !text-base"
+          aria-label="Urutkan"
+        >
           {Object.entries(SORTS).map(([k, [label]]) => <option key={k} value={k}>{label}</option>)}
         </select>
-        <button className="btn btn-primary">Terapkan</button>
+        <button className="btn btn-primary !py-3.5 !px-6 !text-base">Terapkan</button>
       </form>
+
       {!q && !kategori && shelf.length > 0 && <section className="catalog-shelf"><h2>Rak buku pilihan</h2><BookShelf books={shelf} /></section>}
       <p className="mb-3 text-sm text-ink/70">{total} buku ditemukan</p>
       {books.length === 0 ? (

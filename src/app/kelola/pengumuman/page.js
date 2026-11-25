@@ -13,9 +13,10 @@ export const metadata = { title: 'Kelola Pengumuman – RUANG AKSARA' };
 
 export default async function KelolaPengumuman({ searchParams }) {
   await requirePage(['pegawai', 'admin']);
-  const status = ['draft', 'published'].includes(searchParams.status) ? searchParams.status : '';
+  const params = await searchParams;
+  const status = ['draft', 'published'].includes(params?.status) ? params.status : '';
   const [{ total }] = await query(`SELECT COUNT(*) AS total FROM announcements WHERE ($1::text = '' OR status = $1)`, [status]);
-  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(searchParams));
+  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(params));
   const rows = await query(
     `SELECT id, judul, kategori, tanggal_rilis, status FROM announcements WHERE ($1::text = '' OR status = $1)
      ORDER BY tanggal_rilis DESC, id DESC LIMIT ${TABLE_PAGE_SIZE} OFFSET $2`, [status, offset]
@@ -26,11 +27,18 @@ export default async function KelolaPengumuman({ searchParams }) {
         <h1>Kelola Pengumuman</h1>
         <Link href="/kelola/pengumuman/baru" className="btn btn-green">Buat pengumuman</Link>
       </div>
-      <form className="flex gap-2">
-        <select name="status" defaultValue={status} className="input max-w-xs" aria-label="Filter status">
-          <option value="">Semua status</option><option value="draft">Draft</option><option value="published">Published</option>
+      <form method="GET" className="flex flex-wrap items-center gap-3">
+        <select
+          name="status"
+          defaultValue={status}
+          className="input max-w-sm w-full sm:w-72 !py-3.5 !px-4 !text-base"
+          aria-label="Filter status"
+        >
+          <option value="">Semua status</option>
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
         </select>
-        <button className="btn btn-primary">Filter</button>
+        <button type="submit" className="btn btn-primary !py-3.5 !px-6 !text-base">Filter</button>
       </form>
       <div className="table-wrap"><table className="table">
         <thead><tr><th>Judul</th><th>Kategori</th><th>Tanggal rilis</th><th>Status</th><th>Aksi</th></tr></thead>

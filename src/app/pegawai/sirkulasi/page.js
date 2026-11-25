@@ -41,10 +41,19 @@ export default async function Sirkulasi({ searchParams }) {
 
   return (
     <div className="space-y-8">
-      <div><h1>Manajemen Peminjaman</h1><p className="text-sm text-ink/60">Kelola pengembalian buku dan pelunasan denda mahasiswa.</p></div>
-      <form className="card flex flex-col gap-2 sm:flex-row">
-        <input name="q" defaultValue={q} className="input" placeholder="Cari kode pinjam, nama, NIM, atau judul" aria-label="Cari transaksi" />
-        <button className="btn btn-primary">Cari</button>
+      <div>
+        <h1 className="!text-4xl md:!text-[42px] !font-bold !leading-tight">Manajemen Peminjaman</h1>
+        <p className="mt-1 text-sm text-ink/60">Kelola pengembalian buku dan pelunasan denda mahasiswa.</p>
+      </div>
+      <form className="card p-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <input
+          name="q"
+          defaultValue={q}
+          className="input !py-3.5 !px-4 !text-base"
+          placeholder="Cari kode pinjam, nama, NIM, atau judul"
+          aria-label="Cari transaksi"
+        />
+        <button className="btn btn-primary !py-3.5 !px-6 !text-base shrink-0">Cari</button>
       </form>
 
       <section>

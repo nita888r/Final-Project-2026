@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { logoutAction } from '@/app/actions/auth';
 import LibraryIcon from '@/components/LibraryIcon';
 import LogoMark from '@/components/LogoMark';
@@ -13,7 +14,13 @@ const LINKS = {
 };
 
 export default function Navbar({ session: s }) {
+  const pathname = usePathname();
   const links = LINKS[s?.role ?? 'guest'];
+
+  const isActive = (href) => {
+    if (!pathname) return false;
+    return pathname === href;
+  };
 
   const auth = s ? (
     <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:gap-3">
@@ -39,10 +46,20 @@ export default function Navbar({ session: s }) {
             RUANG AKSARA
           </span>
         </Link>
-        <nav className="hidden items-center gap-6 text-sm xl:flex">
-          {links.map(([href, label]) => (
-            <Link key={href} href={href} className="nav-link text-cream/90 hover:text-gold">{label}</Link>
-          ))}
+        <nav className="hidden items-center gap-5 text-sm xl:flex">
+          {links.map(([href, label]) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? 'page' : undefined}
+                className={`nav-link ra-nav-item ${active ? 'ra-nav-item--active' : ''}`}
+              >
+                {label}
+              </Link>
+            );
+          })}
         </nav>
         <div className="hidden xl:block">{auth}</div>
         <details className="ra-mobile-menu relative xl:hidden">
@@ -60,11 +77,19 @@ export default function Navbar({ session: s }) {
               <small>RUANG AKSARA</small>
             </div>
             <nav className="ra-mobile-links" aria-label="Navigasi mobile">
-              {links.map(([href, label]) => (
-                <Link key={href} href={href} className="ra-mobile-link">
-                  {label}<span aria-hidden="true">›</span>
-                </Link>
-              ))}
+              {links.map(([href, label]) => {
+                const active = isActive(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-current={active ? 'page' : undefined}
+                    className={`ra-mobile-link ${active ? 'ra-mobile-link--active' : ''}`}
+                  >
+                    {label}<span aria-hidden="true">›</span>
+                  </Link>
+                );
+              })}
             </nav>
             <div className="ra-mobile-account">
               {s && (
@@ -89,12 +114,37 @@ export default function Navbar({ session: s }) {
         </details>
       </div>
       {( !s || s.role === 'mahasiswa') && <nav className="mobile-dock" aria-label="Navigasi cepat">
-        <Link href="/"><LibraryIcon name="layers" />Koleksi</Link>
-        <Link href="/katalog"><LibraryIcon name="book" />Katalog</Link>
-        <Link href="/pengumuman"><LibraryIcon name="news" />Info</Link>
-        <Link href={s ? '/mahasiswa' : '/login'}><LibraryIcon name="people" />{s ? 'Pinjaman' : 'Masuk'}</Link>
+        <Link href="/" className={isActive('/') ? 'ra-dock-active' : ''}><LibraryIcon name="layers" />Koleksi</Link>
+        <Link href="/katalog" className={isActive('/katalog') ? 'ra-dock-active' : ''}><LibraryIcon name="book" />Katalog</Link>
+        <Link href="/pengumuman" className={isActive('/pengumuman') ? 'ra-dock-active' : ''}><LibraryIcon name="news" />Info</Link>
+        <Link href={s ? '/mahasiswa' : '/login'} className={isActive(s ? '/mahasiswa' : '/login') ? 'ra-dock-active' : ''}><LibraryIcon name="people" />{s ? 'Pinjaman' : 'Masuk'}</Link>
       </nav>}
       <style jsx global>{`
+        .ra-nav-item {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          padding: 6px 12px;
+          border-radius: 8px;
+          color: rgba(255, 248, 232, 0.88);
+          font-weight: 500;
+          transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .ra-nav-item:hover {
+          color: #f3d488;
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .ra-nav-item--active,
+        .ra-nav-item--active:hover {
+          color: #162b20 !important;
+          background: #e5c16c !important;
+          font-weight: 700;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        .ra-dock-active {
+          color: #e5c16c !important;
+          font-weight: 700;
+        }
         .ra-menu-trigger {
           display: flex;
           width: 44px;
@@ -157,6 +207,12 @@ export default function Navbar({ session: s }) {
           border-radius: 8px;
         }
         .ra-mobile-link:hover { color: #e8c879 !important; background: rgba(255,255,255,.09); }
+        .ra-mobile-link--active {
+          color: #183326 !important;
+          background: #d9b86c !important;
+          font-weight: 700;
+        }
+        .ra-mobile-link--active span { color: #183326 !important; }
         .ra-mobile-link span { color: #d9b86c; font-size: 20px; }
         .ra-mobile-account { padding-top: 12px; border-top: 1px solid rgba(201,162,75,.4); }
         .ra-mobile-user { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }

@@ -35,7 +35,9 @@ export default async function Home() {
         <p className="collection-kicker">RUANG AKSARA · PERPUSTAKAAN DIGITAL</p>
         <h1>Dunia ilmu, <em>dalam genggaman.</em></h1>
         <p>Temukan bacaan yang menemani perjalanan ilmumu.</p>
-        <div className="collection-search"><QuickSearch /></div>
+        <div className="collection-search [&_input]:!py-3.5 [&_input]:!text-base [&_button]:!py-3.5 [&_button]:!px-6 [&_button]:!text-base">
+          <QuickSearch />
+        </div>
         <div className="hero-catalog-link"><Link href="/katalog">Jelajahi katalog <span aria-hidden="true">↗</span></Link><span>{categories.length} kategori bacaan</span></div>
       </section>
       <section className="home-section">
