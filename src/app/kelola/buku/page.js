@@ -11,13 +11,20 @@ export const metadata = { title: 'Kelola Buku – RUANG AKSARA' };
 
 export default async function KelolaBuku({ searchParams }) {
   await requirePage(['pegawai', 'admin']);
-  const q = (searchParams.q ?? '').trim();
-  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
+  const sp = await searchParams;
+  const q = (sp?.q ?? '').trim();
+  const page = Math.max(1, parseInt(sp?.page ?? '1', 10) || 1);
   const where = `($1::text = '' OR b.judul ILIKE $2 OR b.pengarang ILIKE $2 OR b.isbn ILIKE $2)`;
-  const [{ total }] = await query(`SELECT COUNT(*) AS total FROM books b WHERE ${where}`, [q, `%${q}%`]);
+  const [{ total }] = await query(
+    `SELECT COUNT(*)::int AS total FROM books b WHERE ${where}`,
+    [q, `%${q}%`]
+  );
+  const totalPages = Math.max(1, Math.ceil(Number(total || 0) / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
   const books = await query(
     `SELECT b.*, c.nama_kategori FROM books b JOIN categories c ON c.id=b.category_id
-     WHERE ${where} ORDER BY b.judul LIMIT ${PAGE_SIZE} OFFSET $3`, [q, `%${q}%`, (page - 1) * PAGE_SIZE]
+     WHERE ${where} ORDER BY b.judul LIMIT ${PAGE_SIZE} OFFSET $3`,
+    [q, `%${q}%`, (safePage - 1) * PAGE_SIZE]
   );
   return (
     <div className="space-y-5">
@@ -50,7 +57,7 @@ export default async function KelolaBuku({ searchParams }) {
           ))}
         </tbody>
       </table></div>
-      <Pagination basePath="/kelola/buku" params={{ q }} page={page} totalPages={Math.ceil(total / PAGE_SIZE)} />
+      <Pagination basePath="/kelola/buku" params={{ q }} page={safePage} totalPages={totalPages} />
     </div>
   );
 }
