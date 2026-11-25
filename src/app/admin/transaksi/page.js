@@ -11,11 +11,12 @@ const PER_PAGE = 20;
 
 export default async function Transaksi({ searchParams }) {
   await requirePage(['admin']);
-  const f = loanFilter(searchParams, 'l.tanggal_pengajuan');
+  const sp = await searchParams;
+  const f = loanFilter(sp, 'l.tanggal_pengajuan');
   const FROM = `FROM loans l JOIN users u ON u.id=l.user_id JOIN books b ON b.id=l.book_id LEFT JOIN fines fn ON fn.loan_id=l.id`;
 
   const [{ total }] = await query(`SELECT COUNT(*) AS total ${FROM} WHERE ${f.cond}`, f.params);
-  const { page, totalPages, offset } = paginate(total, PER_PAGE, pageOf(searchParams));
+  const { page, totalPages, offset } = paginate(total, PER_PAGE, pageOf(sp));
   const rows = await query(
     `SELECT l.id, l.kode_pinjam, l.status, l.tanggal_pengajuan, l.jatuh_tempo, l.tanggal_kembali,
             (l.status='sedang_dipinjam' AND l.jatuh_tempo < CURRENT_DATE) AS terlambat,
@@ -29,12 +30,12 @@ export default async function Transaksi({ searchParams }) {
   );
 
   const exportQs = (jenis) => {
-    const sp = new URLSearchParams({ jenis });
-    if (jenis === 'transaksi' && f.status) sp.set('status', f.status);
-    if (f.q) sp.set('q', f.q);
-    if (f.dari) sp.set('dari', f.dari);
-    if (f.sampai) sp.set('sampai', f.sampai);
-    return `/api/export/loans?${sp.toString()}`;
+    const qs = new URLSearchParams({ jenis });
+    if (jenis === 'transaksi' && f.status) qs.set('status', f.status);
+    if (f.q) qs.set('q', f.q);
+    if (f.dari) qs.set('dari', f.dari);
+    if (f.sampai) qs.set('sampai', f.sampai);
+    return `/api/export/loans?${qs.toString()}`;
   };
   const adaFilter = f.status || f.q || f.dari || f.sampai;
 
@@ -46,17 +47,59 @@ export default async function Transaksi({ searchParams }) {
         <div className="card"><p className="text-sm">Denda lunas</p><p className="font-display text-2xl font-bold text-bottle">{rupiah(rekap.lunas)}</p></div>
       </div>
 
-      <form className="card grid gap-3 md:grid-cols-[1fr_190px_160px_160px_auto]">
-        <input name="q" defaultValue={f.q} className="input" placeholder="Cari kode, peminjam, NIM, atau judul" aria-label="Cari transaksi" />
-        <select name="status" defaultValue={f.status} className="input" aria-label="Filter status">
+      <form
+        action="/admin/transaksi"
+        method="GET"
+        className="card p-4 grid gap-3 md:grid-cols-[1fr_190px_160px_160px_auto] items-end"
+      >
+        <input
+          name="q"
+          defaultValue={f.q}
+          className="input !py-2.5 !px-3.5 !text-sm"
+          placeholder="Cari kode, peminjam, NIM, atau judul"
+          aria-label="Cari transaksi"
+        />
+        <select
+          key={f.status || 'all'}
+          name="status"
+          defaultValue={f.status}
+          className="input !py-2.5 !px-3.5 !text-sm"
+          aria-label="Filter status"
+        >
           <option value="">Semua status</option>
-          {Object.keys(STATUS_FILTERS).map((k) => <option key={k} value={k}>{k.replace(/_/g, ' ')}</option>)}
+          {Object.keys(STATUS_FILTERS).map((k) => (
+            <option key={k} value={k}>
+              {k.replace(/_/g, ' ')}
+            </option>
+          ))}
         </select>
-        <label className="text-xs text-ink/70">Dari tanggal<input type="date" name="dari" defaultValue={f.dari} className="input mt-1" /></label>
-        <label className="text-xs text-ink/70">Sampai tanggal<input type="date" name="sampai" defaultValue={f.sampai} className="input mt-1" /></label>
-        <div className="flex items-end gap-2">
-          <button className="btn btn-primary">Terapkan</button>
-          {adaFilter && <Link href="/admin/transaksi" className="btn btn-outline">Reset</Link>}
+        <label className="text-xs text-ink/70">
+          Dari tanggal
+          <input
+            type="date"
+            name="dari"
+            defaultValue={f.dari}
+            className="input mt-1 !py-2.5 !px-3.5 !text-sm"
+          />
+        </label>
+        <label className="text-xs text-ink/70">
+          Sampai tanggal
+          <input
+            type="date"
+            name="sampai"
+            defaultValue={f.sampai}
+            className="input mt-1 !py-2.5 !px-3.5 !text-sm"
+          />
+        </label>
+        <div className="flex items-center gap-2">
+          <button type="submit" className="btn btn-primary !py-2.5 !px-5 !text-sm">
+            Terapkan
+          </button>
+          {adaFilter && (
+            <Link href="/admin/transaksi" className="btn btn-outline !py-2.5 !px-4 !text-sm">
+              Reset
+            </Link>
+          )}
         </div>
       </form>
 

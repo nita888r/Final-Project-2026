@@ -11,15 +11,22 @@ export const metadata = { title: 'Manajemen Peminjaman – RUANG AKSARA' };
 
 export default async function Sirkulasi({ searchParams }) {
   await requirePage(['pegawai']);
-  const q = (searchParams.q ?? '').trim();
+  const sp = await searchParams;
+  const q = (sp?.q ?? '').trim();
   const like = `%${q}%`;
   const FILTER = `($1::text = '' OR l.kode_pinjam ILIKE $2 OR u.nama_lengkap ILIKE $2 OR u.nomor_identitas ILIKE $2 OR b.judul ILIKE $2)`;
+
   const [{ n: nAktif }] = await query(
-    `SELECT COUNT(*) AS n FROM loans l JOIN users u ON u.id=l.user_id JOIN books b ON b.id=l.book_id WHERE l.status='sedang_dipinjam' AND ${FILTER}`, [q, like]);
+    `SELECT COUNT(*) AS n FROM loans l JOIN users u ON u.id=l.user_id JOIN books b ON b.id=l.book_id WHERE l.status='sedang_dipinjam' AND ${FILTER}`,
+    [q, like]
+  );
   const [{ n: nDenda }] = await query(
-    `SELECT COUNT(*) AS n FROM fines f JOIN loans l ON l.id=f.loan_id JOIN users u ON u.id=l.user_id JOIN books b ON b.id=l.book_id WHERE f.status='tertunggak' AND ${FILTER}`, [q, like]);
-  const pk = paginate(nAktif, TABLE_PAGE_SIZE, pageOf(searchParams, 'pk'));
-  const pd = paginate(nDenda, TABLE_PAGE_SIZE, pageOf(searchParams, 'pd'));
+    `SELECT COUNT(*) AS n FROM fines f JOIN loans l ON l.id=f.loan_id JOIN users u ON u.id=l.user_id JOIN books b ON b.id=l.book_id WHERE f.status='tertunggak' AND ${FILTER}`,
+    [q, like]
+  );
+
+  const pk = paginate(nAktif, TABLE_PAGE_SIZE, pageOf(sp, 'pk'));
+  const pd = paginate(nDenda, TABLE_PAGE_SIZE, pageOf(sp, 'pd'));
 
   const aktif = await query(
     `SELECT l.id, l.kode_pinjam, l.jatuh_tempo, u.nama_lengkap, u.nomor_identitas, b.judul, b.denda_per_hari,
@@ -28,15 +35,18 @@ export default async function Sirkulasi({ searchParams }) {
      FROM loans l JOIN users u ON u.id=l.user_id JOIN books b ON b.id=l.book_id
      WHERE l.status='sedang_dipinjam'
        AND ($1::text = '' OR l.kode_pinjam ILIKE $2 OR u.nama_lengkap ILIKE $2 OR u.nomor_identitas ILIKE $2 OR b.judul ILIKE $2)
-     ORDER BY l.jatuh_tempo LIMIT ${TABLE_PAGE_SIZE} OFFSET $3`, [q, like, pk.offset]
+     ORDER BY l.jatuh_tempo LIMIT ${TABLE_PAGE_SIZE} OFFSET $3`,
+    [q, like, pk.offset]
   );
+
   const denda = await query(
     `SELECT f.id, f.hari_terlambat, f.tarif_per_hari, f.jumlah_denda, f.created_at, l.kode_pinjam,
             u.nama_lengkap, u.nomor_identitas, b.judul
      FROM fines f JOIN loans l ON l.id=f.loan_id JOIN users u ON u.id=l.user_id JOIN books b ON b.id=l.book_id
      WHERE f.status='tertunggak'
        AND ($1::text = '' OR l.kode_pinjam ILIKE $2 OR u.nama_lengkap ILIKE $2 OR u.nomor_identitas ILIKE $2 OR b.judul ILIKE $2)
-     ORDER BY f.created_at LIMIT ${TABLE_PAGE_SIZE} OFFSET $3`, [q, like, pd.offset]
+     ORDER BY f.created_at LIMIT ${TABLE_PAGE_SIZE} OFFSET $3`,
+    [q, like, pd.offset]
   );
 
   return (
@@ -45,72 +55,129 @@ export default async function Sirkulasi({ searchParams }) {
         <h1 className="!text-4xl md:!text-[42px] !font-bold !leading-tight">Manajemen Peminjaman</h1>
         <p className="mt-1 text-sm text-ink/60">Kelola pengembalian buku dan pelunasan denda mahasiswa.</p>
       </div>
-      <form className="card p-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+
+      <form
+        action="/pegawai/sirkulasi"
+        method="GET"
+        className="card p-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] items-center"
+      >
         <input
+          type="text"
           name="q"
           defaultValue={q}
-          className="input !py-3.5 !px-4 !text-base"
+          className="input w-full min-w-0 !m-0 !py-2.5 !px-3.5 !text-sm"
           placeholder="Cari kode pinjam, nama, NIM, atau judul"
           aria-label="Cari transaksi"
         />
-        <button className="btn btn-primary !py-3.5 !px-6 !text-base shrink-0">Cari</button>
+        <button
+          type="submit"
+          className="btn btn-primary w-full sm:w-auto !m-0 !py-2.5 !px-5 !text-sm shrink-0"
+        >
+          Cari
+        </button>
       </form>
 
       <section>
         <h2 className="mb-3">Pengembalian buku ({nAktif})</h2>
-        {aktif.length === 0 ? <p className="card text-sm">Tidak ada transaksi aktif yang cocok.</p> : (
-          <div className="table-wrap"><table className="table">
-            <thead><tr><th>Kode</th><th>Peminjam</th><th>Buku</th><th>Jatuh tempo</th><th>Denda jika dikembalikan hari ini</th><th>Aksi</th></tr></thead>
-            <tbody>
-              {aktif.map((l) => (
-                <tr key={l.id}>
-                  <td>{l.kode_pinjam}</td>
-                  <td>{l.nama_lengkap}<div className="text-xs text-ink/60">{l.nomor_identitas}</div></td>
-                  <td>{l.judul}</td>
-                  <td>
-                    <div className="flex flex-col items-start gap-1">
-                      <span>{fmtDate(l.jatuh_tempo)}</span>
-                      {l.hari_terlambat > 0 && <Badge status="terlambat" />}
-                    </div>
-                  </td>
-                  <td>{l.hari_terlambat > 0 ? <span className="text-brick">{l.hari_terlambat} hari × {rupiah(l.denda_per_hari)} = {rupiah(l.denda_estimasi)}</span> : 'Tidak ada'}</td>
-                  <td>
-                    <ActionForm action={konfirmasiPengembalian}>
-                      <input type="hidden" name="loanId" value={l.id} />
-                      <SubmitButton className="btn btn-green btn-sm" confirmText="Konfirmasi buku sudah dikembalikan?">Konfirmasi kembali</SubmitButton>
-                    </ActionForm>
-                  </td>
+        {aktif.length === 0 ? (
+          <p className="card text-sm">Tidak ada transaksi aktif yang cocok.</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Peminjam</th>
+                  <th>Buku</th>
+                  <th>Jatuh tempo</th>
+                  <th>Denda jika dikembalikan hari ini</th>
+                  <th>Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table></div>
+              </thead>
+              <tbody>
+                {aktif.map((l) => (
+                  <tr key={l.id}>
+                    <td>{l.kode_pinjam}</td>
+                    <td>
+                      {l.nama_lengkap}
+                      <div className="text-xs text-ink/60">{l.nomor_identitas}</div>
+                    </td>
+                    <td>{l.judul}</td>
+                    <td>
+                      <div className="flex flex-col items-start gap-1">
+                        <span>{fmtDate(l.jatuh_tempo)}</span>
+                        {l.hari_terlambat > 0 && <Badge status="terlambat" />}
+                      </div>
+                    </td>
+                    <td>
+                      {l.hari_terlambat > 0 ? (
+                        <span className="text-brick">
+                          {l.hari_terlambat} hari × {rupiah(l.denda_per_hari)} = {rupiah(l.denda_estimasi)}
+                        </span>
+                      ) : (
+                        'Tidak ada'
+                      )}
+                    </td>
+                    <td>
+                      <ActionForm action={konfirmasiPengembalian}>
+                        <input type="hidden" name="loanId" value={l.id} />
+                        <SubmitButton className="btn btn-green btn-sm" confirmText="Konfirmasi buku sudah dikembalikan?">
+                          Konfirmasi kembali
+                        </SubmitButton>
+                      </ActionForm>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         <Pagination basePath="/pegawai/sirkulasi" params={{ q, pd: pd.page }} page={pk.page} totalPages={pk.totalPages} pageParam="pk" />
       </section>
 
       <section>
         <h2 className="mb-3">Denda tertunggak ({nDenda})</h2>
-        {denda.length === 0 ? <p className="card text-sm">Tidak ada denda tertunggak.</p> : (
-          <div className="table-wrap"><table className="table">
-            <thead><tr><th>Kode</th><th>Peminjam</th><th>Buku</th><th>Terlambat</th><th>Jumlah</th><th>Aksi</th></tr></thead>
-            <tbody>
-              {denda.map((f) => (
-                <tr key={f.id}>
-                  <td>{f.kode_pinjam}</td>
-                  <td>{f.nama_lengkap}<div className="text-xs text-ink/60">{f.nomor_identitas}</div></td>
-                  <td>{f.judul}</td>
-                  <td>{f.hari_terlambat} hari × {rupiah(f.tarif_per_hari)}</td>
-                  <td className="font-semibold text-brick">{rupiah(f.jumlah_denda)}</td>
-                  <td>
-                    <ActionForm action={catatLunas}>
-                      <input type="hidden" name="fineId" value={f.id} />
-                      <SubmitButton className="btn btn-gold btn-sm" confirmText="Catat denda ini sebagai lunas?">Catat lunas</SubmitButton>
-                    </ActionForm>
-                  </td>
+        {denda.length === 0 ? (
+          <p className="card text-sm">Tidak ada denda tertunggak.</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Peminjam</th>
+                  <th>Buku</th>
+                  <th>Terlambat</th>
+                  <th>Jumlah</th>
+                  <th>Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table></div>
+              </thead>
+              <tbody>
+                {denda.map((f) => (
+                  <tr key={f.id}>
+                    <td>{f.kode_pinjam}</td>
+                    <td>
+                      {f.nama_lengkap}
+                      <div className="text-xs text-ink/60">{f.nomor_identitas}</div>
+                    </td>
+                    <td>{f.judul}</td>
+                    <td>
+                      {f.hari_terlambat} hari × {rupiah(f.tarif_per_hari)}
+                    </td>
+                    <td className="font-semibold text-brick">{rupiah(f.jumlah_denda)}</td>
+                    <td>
+                      <ActionForm action={catatLunas}>
+                        <input type="hidden" name="fineId" value={f.id} />
+                        <SubmitButton className="btn btn-gold btn-sm" confirmText="Catat denda ini sebagai lunas?">
+                          Catat lunas
+                        </SubmitButton>
+                      </ActionForm>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         <Pagination basePath="/pegawai/sirkulasi" params={{ q, pk: pk.page }} page={pd.page} totalPages={pd.totalPages} pageParam="pd" />
       </section>

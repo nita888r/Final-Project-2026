@@ -12,12 +12,13 @@ export const metadata = { title: 'Kelola Pengguna – RUANG AKSARA' };
 
 export default async function Pengguna({ searchParams }) {
   const s = await requirePage(['admin']);
-  const role = ROLES.includes(searchParams.role) ? searchParams.role : '';
-  const q = (searchParams.q ?? '').trim();
+  const sp = await searchParams;
+  const role = ROLES.includes(sp?.role) ? sp.role : '';
+  const q = (sp?.q ?? '').trim();
   const where = `($1::text = '' OR role = $1) AND ($2::text = '' OR nama_lengkap ILIKE $3 OR email ILIKE $3 OR nomor_identitas ILIKE $3)`;
   const wp = [role, q, `%${q}%`];
   const [{ total }] = await query(`SELECT COUNT(*) AS total FROM users WHERE ${where}`, wp);
-  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(searchParams));
+  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(sp));
   const users = await query(
     `SELECT id, nama_lengkap, email, nomor_identitas, role, is_active FROM users
      WHERE ${where} ORDER BY role, nama_lengkap LIMIT ${TABLE_PAGE_SIZE} OFFSET $4`, [...wp, offset]
@@ -28,12 +29,27 @@ export default async function Pengguna({ searchParams }) {
         <h1>Kelola Pengguna</h1>
         <Link href="/admin/pengguna/baru" className="btn btn-green">Tambah pengguna</Link>
       </div>
-      <form className="flex flex-wrap gap-2">
-        <input name="q" defaultValue={q} className="input max-w-xs" placeholder="Cari nama, email, atau NIM/NIP" aria-label="Cari pengguna" />
-        <select name="role" defaultValue={role} className="input max-w-xs" aria-label="Filter role">
-          <option value="">Semua role</option><option value="admin">Admin</option><option value="pegawai">Pegawai</option><option value="mahasiswa">Mahasiswa</option>
+      <form method="GET" className="flex flex-wrap items-center gap-2.5">
+        <input
+          name="q"
+          defaultValue={q}
+          className="input max-w-xs !py-2.5 !px-3.5 !text-sm"
+          placeholder="Cari nama, email, atau NIM/NIP"
+          aria-label="Cari pengguna"
+        />
+        <select
+          key={role || 'all'}
+          name="role"
+          defaultValue={role}
+          className="input max-w-xs !py-2.5 !px-3.5 !text-sm"
+          aria-label="Filter role"
+        >
+          <option value="">Semua role</option>
+          <option value="admin">Admin</option>
+          <option value="pegawai">Pegawai</option>
+          <option value="mahasiswa">Mahasiswa</option>
         </select>
-        <button className="btn btn-primary">Filter</button>
+        <button type="submit" className="btn btn-primary !py-2.5 !px-5 !text-sm">Filter</button>
       </form>
       <div className="table-wrap"><table className="table">
         <thead><tr><th>Nama</th><th>Email</th><th>Identitas</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead>

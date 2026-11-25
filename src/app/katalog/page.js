@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import BookShelf from '@/components/BookShelf';
-import CatalogFilterForm from '@/components/CatalogFilterForm';
 import { query } from '@/lib/db';
 import { PAGE_SIZE } from '@/lib/config';
 import BookCard from '@/components/BookCard';
@@ -14,10 +13,6 @@ const SORTS = {
   rating: ['Rating tertinggi', 'rata_rating DESC, b.judul ASC'],
   judul: ['Judul A-Z', 'b.judul ASC'],
 };
-
-const SORT_LABELS = Object.fromEntries(
-  Object.entries(SORTS).map(([k, [label]]) => [k, [label]])
-);
 
 export default async function Katalog({ searchParams }) {
   const params = await searchParams;
@@ -69,14 +64,49 @@ export default async function Katalog({ searchParams }) {
         <p>Temukan bacaan favoritmu.</p>
       </div>
 
-      <CatalogFilterForm
-        key={`${q}|${kategori ?? ''}|${sort}`}
-        initialQ={q}
-        initialKategori={kategori ?? ''}
-        initialSort={sort}
-        categories={categories}
-        sorts={SORT_LABELS}
-      />
+      <form
+        action="/katalog"
+        method="GET"
+        className="card mb-6 p-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_200px_210px_auto] items-center"
+      >
+        <input
+          name="q"
+          defaultValue={q}
+          className="input w-full min-w-0 !m-0 !py-2.5 !px-3.5 !text-sm"
+          placeholder="Judul atau pengarang"
+          aria-label="Cari"
+        />
+        <select
+          key={kategori ?? 'all'}
+          name="kategori"
+          defaultValue={kategori ?? ''}
+          className="input w-full min-w-0 !m-0 !py-2.5 !px-3.5 !text-sm"
+          aria-label="Kategori"
+        >
+          <option value="">Semua kategori</option>
+          {categories.map((c) => (
+            <option key={c.id} value={String(c.id)}>
+              {c.nama_kategori}
+            </option>
+          ))}
+        </select>
+        <select
+          key={sort}
+          name="sort"
+          defaultValue={sort}
+          className="input w-full min-w-0 !m-0 !py-2.5 !px-3.5 !text-sm"
+          aria-label="Urutkan"
+        >
+          {Object.entries(SORTS).map(([k, [label]]) => (
+            <option key={k} value={k}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="btn btn-primary w-full md:w-auto !m-0 !py-2.5 !px-5 !text-sm shrink-0">
+          Terapkan
+        </button>
+      </form>
 
       {!q && !kategori && shelf.length > 0 && (
         <section className="catalog-shelf">
