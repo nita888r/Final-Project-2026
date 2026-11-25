@@ -15,15 +15,16 @@ const SORTS = {
 };
 
 export default async function Katalog({ searchParams }) {
-  const q = (searchParams.q ?? '').trim();
-  const kategori = Number.isInteger(Number(searchParams.kategori)) && searchParams.kategori ? Number(searchParams.kategori) : null;
-  const sort = SORTS[searchParams.sort] ? searchParams.sort : 'terbaru';
-  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
+  const params = await searchParams;
+  const q = (params.q ?? '').trim();
+  const kategori = Number.isInteger(Number(params.kategori)) && params.kategori ? Number(params.kategori) : null;
+  const sort = SORTS[params.sort] ? params.sort : 'terbaru';
+  const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1);
 
   const where = `($1::text = '' OR b.judul ILIKE $2 OR b.pengarang ILIKE $2) AND ($3::bigint IS NULL OR b.category_id = $3)`;
-  const params = [q, `%${q}%`, kategori];
+  const queryParams = [q, `%${q}%`, kategori];
 
-  const [{ total }] = await query(`SELECT COUNT(*) AS total FROM books b WHERE ${where}`, params);
+  const [{ total }] = await query(`SELECT COUNT(*) AS total FROM books b WHERE ${where}`, queryParams);
   const books = await query(
     `SELECT b.id, b.judul, b.pengarang, b.sampul, b.stok_tersedia, b.tahun_terbit, c.nama_kategori,
             COALESCE(ROUND(AVG(r.rating),1),0) AS rata_rating
@@ -32,12 +33,12 @@ export default async function Katalog({ searchParams }) {
      GROUP BY b.id, c.nama_kategori
      ORDER BY ${SORTS[sort][1]}
      LIMIT ${PAGE_SIZE} OFFSET $4`,
-    [...params, (page - 1) * PAGE_SIZE]
+    [...queryParams, (page - 1) * PAGE_SIZE]
   );
   const categories = await query('SELECT id, nama_kategori FROM categories ORDER BY nama_kategori');
 
   const selected = categories.find(c => Number(c.id) === kategori);
-  const shelf = await query(`SELECT b.id, b.judul, b.sampul FROM books b LEFT JOIN loans l ON l.book_id=b.id AND l.status IN ('sedang_dipinjam','selesai') WHERE ${where} GROUP BY b.id ORDER BY COUNT(l.id) DESC, b.judul LIMIT 5`, params);
+  const shelf = await query(`SELECT b.id, b.judul, b.sampul FROM books b LEFT JOIN loans l ON l.book_id=b.id AND l.status IN ('sedang_dipinjam','selesai') WHERE ${where} GROUP BY b.id ORDER BY COUNT(l.id) DESC, b.judul LIMIT 5`, queryParams);
   return (
     <div className="catalog-page">
       <Link href="/" className="collection-back">← Semua koleksi</Link>

@@ -9,18 +9,19 @@ import ActionForm, { SubmitButton } from '@/components/ActionForm';
 import { ajukanPinjam } from '@/app/actions/loans';
 
 export default async function BukuDetail({ params }) {
-  const id = Number(params.id);
-  if (!Number.isInteger(id)) notFound();
+  const {id} = await params;
+  const idNum = Number(id);
+  if (!Number.isInteger(idNum)) notFound();
   const rows = await query(
     `SELECT b.*, c.nama_kategori, COALESCE(ROUND(AVG(r.rating),1),0) AS rata_rating, COUNT(r.id) AS jumlah_ulasan
      FROM books b JOIN categories c ON c.id=b.category_id LEFT JOIN reviews r ON r.book_id=b.id
-     WHERE b.id=$1 GROUP BY b.id, c.nama_kategori`, [id]
+     WHERE b.id=$1 GROUP BY b.id, c.nama_kategori`, [idNum]
   );
   const b = rows[0];
   if (!b) notFound();
   const ulasan = await query(
     `SELECT r.rating, r.komentar, r.created_at, u.nama_lengkap
-     FROM reviews r JOIN users u ON u.id=r.user_id WHERE r.book_id=$1 ORDER BY r.created_at DESC`, [id]
+     FROM reviews r JOIN users u ON u.id=r.user_id WHERE r.book_id=$1 ORDER BY r.created_at DESC`, [idNum]
   );
 
   const s = await getSession();
@@ -30,7 +31,7 @@ export default async function BukuDetail({ params }) {
     aktif = (await query(`SELECT 1 FROM loans WHERE user_id=$1 AND book_id=$2 AND status IN ('menunggu_konfirmasi','sedang_dipinjam')`, [s.id, id])).length > 0;
     const belumUlas = await query(
       `SELECT l.id FROM loans l WHERE l.user_id=$1 AND l.book_id=$2 AND l.status='selesai'
-         AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.loan_id=l.id) ORDER BY l.id DESC LIMIT 1`, [s.id, id]
+         AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.loan_id=l.id) ORDER BY l.id DESC LIMIT 1`, [s.id, idNum]
     );
     ulasLoanId = belumUlas[0]?.id ?? null;
   }
