@@ -13,14 +13,21 @@ export const metadata = { title: 'Kelola Pengumuman – RUANG AKSARA' };
 
 export default async function KelolaPengumuman({ searchParams }) {
   await requirePage(['pegawai', 'admin']);
-  const params = await searchParams;
-  const status = ['draft', 'published'].includes(params?.status) ? params.status : '';
-  const [{ total }] = await query(`SELECT COUNT(*) AS total FROM announcements WHERE ($1::text = '' OR status = $1)`, [status]);
-  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(params));
+  const resolvedParams = searchParams && typeof searchParams.then === 'function'
+    ? await searchParams
+    : searchParams;
+
+  const rawStatus = String(resolvedParams?.status ?? '').trim().toLowerCase();
+  const status = ['draft', 'published'].includes(rawStatus) ? rawStatus : '';
+
+  const whereClause = `($1::text = '' OR LOWER(TRIM(status)) = $1)`;
+  const [{ total }] = await query(`SELECT COUNT(*) AS total FROM announcements WHERE ${whereClause}`, [status]);
+  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(resolvedParams));
   const rows = await query(
-    `SELECT id, judul, kategori, tanggal_rilis, status FROM announcements WHERE ($1::text = '' OR status = $1)
+    `SELECT id, judul, kategori, tanggal_rilis, status FROM announcements WHERE ${whereClause}
      ORDER BY tanggal_rilis DESC, id DESC LIMIT ${TABLE_PAGE_SIZE} OFFSET $2`, [status, offset]
   );
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -31,7 +38,7 @@ export default async function KelolaPengumuman({ searchParams }) {
         <select
           name="status"
           defaultValue={status}
-          className="input max-w-sm w-full sm:w-72 !py-3.5 !px-4 !text-base"
+          className="input max-w-md w-full sm:w-96 !py-3.5 !px-4 !text-base"
           aria-label="Filter status"
         >
           <option value="">Semua status</option>
