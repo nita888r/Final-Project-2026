@@ -32,9 +32,15 @@ export default async function KelolaBuku({ searchParams }) {
         <h1>Kelola Buku</h1>
         <Link href="/kelola/buku/baru" className="btn btn-green">Tambah buku</Link>
       </div>
-      <form className="flex gap-2">
-        <input name="q" defaultValue={q} className="input" placeholder="Cari judul, pengarang, atau ISBN" aria-label="Cari buku" />
-        <button className="btn btn-primary">Cari</button>
+      <form className="flex flex-wrap items-center gap-3">
+        <input
+          name="q"
+          defaultValue={q}
+          className="input flex-1 !py-2.5 !px-4 !text-base"
+          placeholder="Cari judul, pengarang, atau ISBN"
+          aria-label="Cari buku"
+        />
+        <button className="btn btn-primary !py-2.5 !px-5 !text-base">Cari</button>
       </form>
       <div className="table-wrap"><table className="table">
         <thead><tr><th>Judul</th><th>Kategori</th><th>ISBN</th><th>Stok total</th><th>Tersedia</th><th>Denda/hari</th><th>Aksi</th></tr></thead>
