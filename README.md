@@ -1,274 +1,222 @@
 <div align="center">
-  <img src="public/images/logo.png" alt="Logo Ruang Aksara" width="200" />
-
-  <h1>RUANG AKSARA: Perpustakaan Digital</h1>
-
-  <strong>Sistem Manajemen Perpustakaan Kampus</strong>
-
-  <em>Tempat setiap ilmu menemukan pembacanya.</em>
-
+  <img src="public/images/logo.png" alt="Logo Ruang Aksara" width="120" />
+  <h1>RUANG AKSARA</h1>
+  <p><strong>Sistem Manajemen Perpustakaan Kampus</strong></p>
+  <p>Katalog digital, pengajuan peminjaman, perpanjangan, dan pengelolaan denda dalam satu aplikasi web.</p>
   <p>
-    <img src="https://img.shields.io/badge/Next.js-App_Router-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js App Router" />
-    <img src="https://img.shields.io/badge/JavaScript-JSX-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript JSX" />
-    <img src="https://img.shields.io/badge/Tailwind_CSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
-    <img src="https://img.shields.io/badge/Status-Completed-2F4F3E?style=for-the-badge" alt="Status Completed" />
+    <img src="https://img.shields.io/badge/Next.js-App_Router-2F4F3E?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js App Router" />
+    <img src="https://img.shields.io/badge/React-19-2F4F3E?style=flat-square&logo=react&logoColor=white" alt="React 19" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-4-2F4F3E?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
+    <img src="https://img.shields.io/badge/PostgreSQL-SQL-2F4F3E?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   </p>
 </div>
 
----
+## Navigasi
 
-## 🧭 Navigasi
+- [Tentang Ruang Aksara](#tentang-ruang-aksara)
+- [Fitur Utama Sistem](#fitur-utama-sistem)
+- [Alur Peminjaman](#alur-peminjaman)
+- [Tingkat Pengguna](#tingkat-pengguna)
+- [Teknologi](#teknologi)
+- [Struktur Proyek](#struktur-proyek)
+- [Instalasi](#instalasi)
+- [Akun Demo](#akun-demo)
 
-- [Tentang Ruang Aksara](#-tentang-ruang-aksara)
-- [Fitur Utama Sistem](#-fitur-utama-sistem)
-- [Alur Sirkulasi](#-alur-sirkulasi-buku)
-- [Tingkat Pengguna](#-tingkat-pengguna)
-- [Teknologi](#-teknologi-yang-digunakan)
-- [Struktur Direktori](#-struktur-direktori)
-- [Instalasi](#-panduan-instalasi-dan-menjalankan-project)
-- [Akun Demo](#-akun-demo-untuk-pengujian)
+## Tentang Ruang Aksara
 
-## 🌿 Tentang Ruang Aksara
+**Ruang Aksara** adalah aplikasi perpustakaan kampus yang membantu pengunjung menemukan buku dan membantu petugas mengelola peminjaman buku fisik. Mahasiswa bisa melihat stok sebelum datang, mengajukan pinjaman, dan mengikuti statusnya dari dashboard. Pegawai mencatat persetujuan, pengembalian, dan pelunasan denda di meja sirkulasi, sementara Admin mengelola akun, kategori, memantau transaksi, serta mengunduh laporan.
 
-**Ruang Aksara** adalah sistem manajemen perpustakaan kampus yang memudahkan mahasiswa menelusuri katalog, mengajukan peminjaman, memperpanjang masa pinjam, memantau denda, serta memberi rating dan ulasan. Di sisi pengelola, sistem ini membantu Pegawai Perpustakaan dan Admin mengelola koleksi, sirkulasi, pengumuman, dan data pengguna dalam satu aplikasi.
+## Fitur Utama Sistem
 
-Ruang Aksara menggabungkan tiga hal utama:
+### 1. Beranda dan katalog publik
 
-- **Katalog terbuka:** koleksi, buku terpopuler, dan pengumuman dapat dilihat siapa saja tanpa login.
-- **Layanan sirkulasi:** pengajuan pinjam, persetujuan, pengembalian, perpanjangan, dan denda tercatat jelas dalam satu alur.
-- **Pengelolaan terpusat:** Admin dan Pegawai memiliki dashboard sesuai peran masing-masing.
+- **Beranda.** Menampilkan hero perpustakaan, pencarian cepat, daftar koleksi, lima **Buku Terpopuler**, dan pengumuman terbaru.
+- **Katalog.** Cari buku, pilih kategori, urutkan hasil (tahun terbit terbaru, tahun terbit terlama, rating tertinggi, atau judul A sampai Z), dan jelajahi lewat pagination. Rak buku pilihan tampil di halaman katalog.
+- **Detail buku.** Lihat sampul, ISBN, pengarang, penerbit, tahun terbit, kategori, stok tersedia, durasi pinjam maksimal, tarif denda harian, rating, dan ulasan pembaca.
+- **Pengumuman dan Tentang.** Baca pengumuman yang sudah terbit, panduan cara meminjam buku, dan kontak admin.
 
-## ✨ Fitur Utama Sistem
-
-### 1. 📖 Katalog dan Penjelajahan Buku
-
-- **Beranda:** hero perpustakaan, pencarian cepat koleksi, daftar semua koleksi, **Buku Terpopuler** (lima buku dengan peminjaman terbanyak), dan pengumuman terbaru.
-- **Katalog publik:** pengunjung dapat menjelajahi koleksi berdasarkan kategori tanpa harus masuk ke akun, lengkap dengan rak buku pilihan.
-- **Pencarian, filter, dan pengurutan:** mencari buku, menyaring per kategori, dan mengurutkan hasil, dengan pagination.
-- **Detail buku:** menampilkan ISBN, judul, pengarang, penerbit, tahun terbit, kategori, stok tersedia, durasi maksimal peminjaman, tarif denda harian, rata-rata rating, dan ulasan pembaca.
-
-### 2. 🔐 Autentikasi dan Hak Akses
+### 2. Autentikasi dan hak akses
 
 - Login untuk **Admin**, **Pegawai Perpustakaan**, dan **Mahasiswa**.
-- Registrasi mandiri khusus **Mahasiswa** dengan **email kampus (berakhiran `.ac.id` atau `.edu`)** dan nomor identitas (NIM) bebas huruf, angka, atau campuran (maksimal 30 karakter).
-- Akun **Pegawai** dan **Admin** hanya dibuat oleh Admin melalui menu Pengguna.
-- Akses **Guest** untuk menjelajahi halaman publik tanpa autentikasi.
-- Pembatasan halaman dan tindakan berdasarkan peran (*Role-Based Access Control* / RBAC), serta pengecekan status akun aktif.
-- Sesi login berbasis cookie `httpOnly`.
+- Registrasi mandiri khusus **Mahasiswa** dengan **email kampus berakhiran `.ac.id` atau `.edu`**. Nomor identitas (NIM) bebas huruf, angka, atau campuran, maksimal 30 karakter.
+- Akun **Pegawai** dan **Admin** hanya dibuat oleh Admin lewat menu Pengguna.
+- Halaman dan tindakan dibatasi berdasarkan peran (*Role-Based Access Control*). Akun yang dinonaktifkan tidak dapat memakai sistem.
+- Sesi login memakai cookie `httpOnly`.
 
-### 3. 🔄 Peminjaman, Pengembalian, dan Perpanjangan
+### 3. Peminjaman, perpanjangan, pengembalian, dan denda
 
-- Mahasiswa mengajukan peminjaman melalui halaman detail buku (**Ajukan Pinjam**).
-- Pegawai memeriksa antrean pengajuan, lalu menyetujui atau menolaknya disertai alasan penolakan.
-- Persetujuan peminjaman mengurangi stok tersedia dan konfirmasi pengembalian menambah stok kembali, keduanya melalui transaksi PostgreSQL.
-- Mahasiswa dapat mengajukan perpanjangan untuk buku yang sedang dipinjam dan belum terlambat, **maksimal 1 kali per transaksi**. Pegawai memvalidasi permohonan tersebut.
-- Satu mahasiswa tidak dapat memiliki dua pengajuan atau pinjaman aktif untuk buku yang sama.
+- Mahasiswa mengajukan pinjaman lewat tombol **Ajukan Pinjam** di detail buku. Satu mahasiswa tidak dapat memiliki dua pengajuan atau pinjaman aktif untuk judul yang sama.
+- Pegawai memeriksa antrean lalu menyetujui atau menolak pengajuan. Penolakan wajib disertai alasan. Stok berkurang saat pengajuan disetujui.
+- Mahasiswa dapat mengajukan **satu perpanjangan per transaksi** selama buku belum terlambat. Pegawai memvalidasi permohonan tersebut.
+- Saat buku kembali, Pegawai mengonfirmasi pengembalian dan stok bertambah. Jika terlambat, **denda = jumlah hari terlambat × tarif harian buku**. Tarif disalin ke catatan denda, jadi perubahan tarif buku di kemudian hari tidak mengubah denda lama.
+- Pegawai mencatat pelunasan denda setelah pembayaran diterima. Denda **tertunggak** memblokir pengajuan pinjam baru.
 
-### 4. ⏰ Perhitungan dan Pengelolaan Denda
+### 4. Rating dan ulasan
 
-- Keterlambatan dihitung otomatis dari tanggal jatuh tempo dan tanggal pengembalian.
-- Nominal denda adalah jumlah hari terlambat dikalikan tarif denda harian buku. Tarif disalin ke tabel denda saat dicatat, sehingga perubahan tarif buku di kemudian hari tidak mengubah denda lama.
-- Pegawai mencatat pelunasan denda di meja sirkulasi.
-- Mahasiswa dengan denda **tertunggak** tidak dapat mengajukan peminjaman baru sampai denda dilunasi.
+Setelah peminjaman berstatus **selesai**, mahasiswa dapat memberi **rating 1 sampai 5 bintang** dan menulis komentar. Satu transaksi hanya dapat diulas satu kali. Rata-rata rating dan ulasan tampil di katalog serta detail buku.
 
-### 5. ⭐ Rating dan Ulasan Buku
+### 5. Pengelolaan perpustakaan
 
-- Mahasiswa dapat memberi rating skala 1 sampai 5 beserta komentar.
-- Ulasan hanya dapat diberikan untuk peminjaman yang sudah **selesai**, dan **satu ulasan per transaksi**.
-- Halaman katalog dan detail buku menampilkan rata-rata rating serta ulasan pembaca.
+- **Koleksi buku.** Pegawai dan Admin dapat menambah, mengubah, dan menghapus buku, mengatur stok, durasi pinjam, tarif denda, serta mengunggah sampul (JPG, PNG, WEBP, atau GIF, maksimal 5 MB). Buku yang masih memiliki transaksi aktif tidak dapat dihapus.
+- **Pengumuman.** Pegawai dan Admin dapat membuat dan mengubah pengumuman dengan kategori operasional, layanan, atau acara, serta status draft atau terbit.
+- **Pengguna.** Admin dapat menambah, mengubah, menonaktifkan, dan menghapus akun. Akun sendiri dan akun yang memiliki transaksi aktif tidak dapat dihapus. Akun yang sudah punya riwayat cukup dinonaktifkan.
+- **Kategori.** Admin mengelola nama, kode klasifikasi unik, dan deskripsi. Kategori yang masih dipakai buku tidak dapat dihapus.
 
-### 6. 🗂️ Pengelolaan Data
+### 6. Monitoring transaksi dan unduh laporan CSV (Admin)
 
-- **Manajemen pengguna (Admin):** melihat, menambah, mengubah, menonaktifkan, dan menghapus akun. Akun sendiri serta akun yang memiliki transaksi aktif tidak dapat dihapus.
-- **Manajemen kategori (Admin):** mengelola nama kategori, kode klasifikasi unik, dan deskripsi. Kategori yang masih dipakai buku tidak dapat dihapus.
-- **Manajemen buku (Pegawai dan Admin):** mengelola metadata buku, jumlah stok, dan **unggah gambar sampul** (`JPG`, `PNG`, `WEBP`, `GIF`, maksimal 5 MB). Buku yang masih memiliki transaksi aktif tidak dapat dihapus.
-- **Manajemen pengumuman (Pegawai dan Admin):** membuat, mengubah, dan menerbitkan pengumuman dengan status draft atau terbit, dalam kategori operasional, layanan, atau acara.
+Halaman **Monitoring Transaksi** punya pencarian, filter status, dan filter periode. Unduhan CSV mengikuti filter yang sedang dipakai.
 
-### 7. 📊 Dashboard dan Laporan Berdasarkan Peran
+| Laporan | Di mana mengunduh | Isi |
+| --- | --- | --- |
+| Transaksi | **Monitoring Transaksi → Unduh transaksi (CSV)** | Data peminjaman sesuai pencarian, status, dan periode yang dipilih. |
+| Rekap denda | **Monitoring Transaksi → Unduh rekap denda (CSV)** | Data denda sesuai filter. Rekap denda memakai tanggal denda dicatat. |
 
-| Peran | Fokus Dashboard |
-|---|---|
-| **Admin** | Statistik koleksi, pengguna, dan transaksi, manajemen akun dan kategori, serta monitoring transaksi dengan pencarian, filter status, dan filter periode. |
-| **Pegawai Perpustakaan** | Antrean pengajuan pinjam, validasi perpanjangan, pengembalian buku, pencatatan denda tertunggak, katalog buku, dan pengumuman. |
-| **Mahasiswa** | Katalog dan rak buku, pinjaman aktif, jatuh tempo, pengajuan perpanjangan, riwayat transaksi, ulasan, dan status denda. |
-| **Guest** | Beranda, katalog, detail buku, pengumuman publik, dan halaman Tentang. |
+CSV dapat dibuka di Excel atau Google Sheets.
 
-- **Ekspor CSV (Admin):** transaksi dan rekap denda dapat diunduh sebagai CSV, mengikuti filter yang sedang dipakai.
-- **Halaman Tentang:** panduan cara meminjam buku dan kontak admin.
-
-## 🧭 Alur Sirkulasi Buku
-
-Alur peminjaman dirancang agar status transaksi dan stok koleksi tetap konsisten.
+## Alur Peminjaman
 
 ```text
-Mahasiswa mengajukan peminjaman
-              │
-              ▼
-     menunggu_konfirmasi
-              │
-       ┌──────┴──────┐
-       ▼             ▼
-  sedang_dipinjam   ditolak
-       │          (dengan alasan)
-       ▼
-Pegawai mengonfirmasi
-    pengembalian
-       │
-       ▼
-     selesai
-       │
-       ▼
-Denda dicatat jika terlambat
+Mahasiswa memilih buku di katalog
+        │
+        ▼
+Klik Ajukan Pinjam
+        │
+        ▼
+Menunggu Konfirmasi
+        ├── Ditolak ──► Alasan tampil di riwayat mahasiswa
+        │
+        ▼ Disetujui oleh Pegawai
+Sedang Dipinjam ──► Stok berkurang dan jatuh tempo ditetapkan
+        │
+        ▼
+Pegawai mengonfirmasi pengembalian
+        │
+        ▼
+Selesai ──► Stok bertambah dan mahasiswa dapat memberi ulasan
+        └── Jika terlambat ──► Denda dicatat sebagai Tertunggak
 ```
 
-**Prinsip penting:** pengajuan yang masih menunggu konfirmasi belum mengurangi stok. Stok berkurang ketika Pegawai menyetujui peminjaman dan bertambah kembali ketika pengembalian dikonfirmasi.
+Pengajuan yang masih menunggu konfirmasi belum mengurangi stok. Persetujuan dan pengembalian dijalankan sebagai transaksi PostgreSQL agar stok dan status tetap konsisten.
 
-## 👥 Tingkat Pengguna
+## Tingkat Pengguna
 
-| Role | Hak Akses Utama |
-|---|---|
-| **Admin** | Mengelola akun dan kategori, memantau statistik dan transaksi, mengunduh laporan CSV, serta mengakses pengelolaan buku dan pengumuman. |
-| **Pegawai Perpustakaan** | Mengelola buku dan pengumuman, memvalidasi peminjaman dan perpanjangan, memproses pengembalian, serta mencatat pelunasan denda. |
-| **Mahasiswa** | Menjelajahi katalog, mengajukan peminjaman dan perpanjangan, memantau transaksi dan denda, serta memberi ulasan setelah peminjaman selesai. |
-| **Guest** | Menjelajahi katalog, detail buku, dan pengumuman publik tanpa melakukan transaksi. |
+| Peran | Cara masuk | Yang dapat dilakukan |
+| --- | --- | --- |
+| **Tamu** | Buka beranda atau katalog tanpa login | Cari buku, lihat detail dan ulasan, baca pengumuman, dan buka halaman Tentang. |
+| **Mahasiswa** | Daftar dengan email kampus `.ac.id` atau `.edu`, lalu masuk | Ajukan pinjam dan perpanjangan, cek riwayat dan denda, serta beri ulasan setelah peminjaman selesai. |
+| **Pegawai Perpustakaan** | Akun dibuat oleh Admin, lalu masuk ke Dashboard Pegawai | Kelola koleksi dan pengumuman, setujui atau tolak pinjaman, validasi perpanjangan, catat pengembalian, dan catat pelunasan denda. |
+| **Admin** | Akun demo atau akun yang sudah ada, lalu masuk ke Dashboard Admin | Kelola akun dan kategori, akses pengelolaan koleksi dan pengumuman, pantau transaksi, dan unduh CSV. |
 
-> **Kebijakan Pendaftaran Akun:** Registrasi publik hanya untuk Mahasiswa dan **wajib menggunakan email kampus berakhiran `.ac.id` atau `.edu`**. Akun **Pegawai** dan **Admin** dibuat langsung oleh Admin.
+## Teknologi
 
-## 💻 Teknologi yang Digunakan
+| Bagian | Yang digunakan |
+| --- | --- |
+| **Frontend** | React 19 dan JavaScript JSX untuk halaman dan komponen. Tailwind CSS 4 untuk layout dan tampilan responsif. |
+| **Backend** | Next.js App Router untuk routing, halaman, dan logika aplikasi. |
+| **Database** | PostgreSQL dengan driver `pg` dan query Raw SQL berparameter. |
+| **Akun dan sesi** | `bcryptjs` untuk hash kata sandi dan `jose` (JWT) untuk token sesi pada cookie. |
 
-| Bagian | Teknologi | Peran |
-|---|---|---|
-| Framework | **Next.js (App Router)** | Routing, halaman, dan logika aplikasi. |
-| Bahasa | **JavaScript (JSX)** | Logika aplikasi dan komponen antarmuka. |
-| Styling | **Tailwind CSS** | Styling responsif dan konsistensi tampilan. |
-| Database | **PostgreSQL** | Penyimpanan data pengguna, kategori, buku, pengumuman, transaksi, denda, dan ulasan. |
-| Database Driver | **node-postgres (`pg`)** | Koneksi PostgreSQL dan eksekusi query Raw SQL berparameter. |
-| Password Hashing | **bcryptjs** | Hash dan verifikasi kata sandi pengguna. |
-| Sesi | **jose (JWT)** | Penandatanganan dan verifikasi token sesi pada cookie. |
+## Struktur Proyek
 
-## 📁 Struktur Direktori
-
-Seluruh file SQL disimpan di folder `database/`, di luar folder aplikasi.
+Seluruh file SQL ada di folder `database/`, di luar folder aplikasi.
 
 ```text
 Final-Project-2026/
+├── .env.example                  # Contoh pengaturan lokal
+├── package.json                  # Skrip npm dan paket aplikasi
+├── package-lock.json
+├── next.config.mjs
+├── eslint.config.mjs
+├── jsconfig.json
+├── postcss.config.js
+├── tailwind.config.js
+├── README.md
 ├── database/
-│   ├── schema.sql                  # Tabel, constraint, dan index
-│   ├── seed.sql                    # Akun demo, kategori, buku, pengumuman, dan transaksi contoh
-│   └── migration_book_covers.sql   # Tambahan tabel book_covers untuk database lama
+│   ├── schema.sql                # Tabel, constraint, dan index PostgreSQL
+│   ├── seed.sql                  # Akun demo, kategori, buku, pengumuman, dan transaksi contoh
+│   └── migration_book_covers.sql # Tambahan tabel book_covers untuk database lama
 ├── public/
 │   ├── images/
 │   │   ├── logo.png
 │   │   └── library-hero.webp
 │   └── uploads/
-│       └── books/                  # Gambar sampul buku
-├── src/
-│   ├── app/
-│   │   ├── page.js                 # Beranda
-│   │   ├── layout.js
-│   │   ├── globals.css
-│   │   ├── login/
-│   │   ├── register/
-│   │   ├── katalog/
-│   │   ├── buku/
-│   │   ├── pengumuman/
-│   │   ├── tentang/
-│   │   ├── ulasan/
-│   │   ├── mahasiswa/
-│   │   ├── pegawai/
-│   │   ├── kelola/                 # Pengelolaan buku dan pengumuman
-│   │   ├── admin/                  # Pengguna, kategori, dan monitoring transaksi
-│   │   ├── actions/
-│   │   └── api/
-│   ├── components/
-│   ├── lib/
-│   └── middleware.js
-├── .env.example
-├── .gitignore
-├── jsconfig.json
-├── next.config.mjs
-├── package.json
-└── README.md
+│       └── books/                # Sampul buku
+└── src/
+    ├── app/
+    │   ├── page.js               # Beranda
+    │   ├── layout.js
+    │   ├── globals.css
+    │   ├── login/
+    │   ├── register/
+    │   ├── katalog/
+    │   ├── buku/
+    │   ├── pengumuman/
+    │   ├── tentang/
+    │   ├── ulasan/
+    │   ├── mahasiswa/            # Area mahasiswa
+    │   ├── pegawai/              # Dashboard dan sirkulasi Pegawai
+    │   ├── kelola/               # Pengelolaan buku dan pengumuman
+    │   ├── admin/                # Pengguna, kategori, dan monitoring transaksi
+    │   ├── actions/              # Proses formulir dan transaksi
+    │   └── api/                  # Pencarian buku, sampul, dan unduhan CSV
+    ├── components/               # Komponen antarmuka
+    ├── lib/                      # Koneksi database, sesi, dan aturan aplikasi
+    └── middleware.js             # Pemeriksaan awal halaman yang dilindungi
 ```
 
-## 🚀 Panduan Instalasi dan Menjalankan Project
+## Instalasi
 
-### 1. Clone Repository
+### Langkah Pemasangan
 
-```bash
-git clone https://github.com/nita888r/Final-Project-2026.git
-cd Final-Project-2026
-```
+Siapkan **Git**, **Node.js 20.9 atau lebih baru**, **npm**, dan **PostgreSQL**. Jika memakai antarmuka grafis untuk database, siapkan **pgAdmin**.
 
-### 2. Install Dependencies
+1. **Kloning repositori dan masuk ke folder proyek.**
 
-Pastikan **Node.js 20 atau lebih baru**, **npm**, dan **PostgreSQL** sudah terpasang, lalu jalankan:
-
-```bash
-npm install
-```
-
-### 3. Buat dan Isi Database PostgreSQL
-
-1. Buka **pgAdmin 4**, klik kanan pada `Databases` → `Create` → `Database...`, lalu buat database bernama **`ruang_aksara`**:
-   ```sql
-   CREATE DATABASE ruang_aksara;
+   ```bash
+   git clone https://github.com/nita888r/Final-Project-2026.git
+   cd Final-Project-2026
    ```
-2. Klik kanan database **`ruang_aksara`** → pilih **Query Tool**.
-3. Jalankan file berikut **secara berurutan** (klik ikon **Open File**, pilih file, lalu tekan **Execute / F5**):
-   1. `database/schema.sql` membuat 8 tabel (`users`, `categories`, `books`, `book_covers`, `announcements`, `loans`, `fines`, `reviews`), constraint, dan index. File ini aman dijalankan ulang karena tabel lama akan dihapus terlebih dahulu.
-   2. `database/seed.sql` mengisi akun demo, 6 kategori, 30 buku beserta sampulnya, pengumuman, dan transaksi contoh.
 
-### 4. Konfigurasi Environment
+2. **Pasang paket yang dibutuhkan.**
 
-Salin file `.env.example` menjadi **`.env.local`** di root project (sejajar dengan `package.json`), lalu isi nilainya:
+   ```bash
+   npm install
+   ```
 
-```env
-DATABASE_URL=postgresql://postgres:PASSWORD_ANDA@localhost:5432/ruang_aksara
-AUTH_SECRET=ganti-dengan-string-acak-panjang
-```
+3. **Siapkan database PostgreSQL.** Di pgAdmin, buat database kosong bernama `ruang_aksara`. Buka **Query Tool** pada database tersebut, lalu jalankan [`schema.sql`](database/schema.sql) dan setelah itu [`seed.sql`](database/seed.sql) (buka file, tekan F5). `schema.sql` membuat 8 tabel (`users`, `categories`, `books`, `book_covers`, `announcements`, `loans`, `fines`, `reviews`) dan aman dijalankan ulang. `seed.sql` mengisi akun demo, 6 kategori, 30 buku, pengumuman, dan transaksi contoh. Sampul buku data contoh sudah tersedia di `public/uploads/books/`.
 
-Ganti `PASSWORD_ANDA` dengan password PostgreSQL lokal Anda. Untuk `AUTH_SECRET`, gunakan string acak yang panjang, misalnya hasil dari `openssl rand -hex 32`. Jangan mengunggah `.env.local` ke GitHub.
+4. **Konfigurasi variabel lingkungan.** Salin [`.env.example`](.env.example) menjadi `.env.local` di root proyek, lalu isi kredensial PostgreSQL lokalmu.
 
-### 5. Jalankan Aplikasi
+   ```dotenv
+   DATABASE_URL=postgresql://postgres:PASSWORD_POSTGRES@localhost:5432/ruang_aksara
+   AUTH_SECRET=GANTI_DENGAN_KUNCI_ACAK_PANJANG
+   ```
 
-```bash
-npm run dev
-```
+   Ganti `PASSWORD_POSTGRES` dengan kata sandi PostgreSQL milikmu. Buat nilai `AUTH_SECRET` dengan `openssl rand -hex 32`, atau dengan `node -p "require('node:crypto').randomBytes(32).toString('hex')"`. Simpan pengaturan asli di `.env.local` dan jangan mengunggah file itu ke GitHub.
 
-Buka aplikasi melalui browser di alamat:
+5. **Jalankan server pengembangan.**
 
-```text
-http://localhost:3000
-```
+   ```bash
+   npm run dev
+   ```
 
-Untuk memeriksa build production:
+   Buka [http://localhost:3000](http://localhost:3000).
 
-```bash
-npm run build
-npm run start
-```
+6. **Periksa build production (opsional).**
 
-## 🔑 Akun Demo untuk Pengujian
+   ```bash
+   npm run build
+   npm run start
+   ```
 
-**Password semua akun demo: `password123`**
+## Akun Demo
 
-Data demo sudah dilengkapi riwayat transaksi yang beragam sehingga seluruh alur sirkulasi dapat langsung dicoba.
+Setelah mengimpor `seed.sql`, ada 5 akun contoh dengan kata sandi **`password123`**. Semua akun berstatus aktif.
 
-| Role | Nama | Email | Identitas | Kondisi Demo |
-| :--- | :--- | :--- | :--- | :--- |
-| **Admin** | Administrator Ruang Aksara | `admin@ruangaksara.id` | `ADM-001` | Akses penuh: pengguna, kategori, buku, pengumuman, monitoring transaksi, dan ekspor CSV. |
-| **Pegawai** | Nafisha Kasman | `pegawai@ruangaksara.id` | `NIP-1001` | Meja sirkulasi: antrean pinjam, perpanjangan, pengembalian, denda, buku, dan pengumuman. |
-| **Mahasiswa** | Aliyah Alpat | `aliyah@student.ac.id` | `H071231001` | Memiliki pinjaman aktif (*Database System Concepts*), riwayat selesai, dan ulasan. |
-| **Mahasiswa** | Addah Uddin | `addah@student.ac.id` | `H071231002` | Riwayat peminjaman selesai beserta ulasan buku. |
-| **Mahasiswa** | Aura Autang | `aura@student.ac.id` | `H071231003` | Denda **tertunggak** (pinjam baru diblokir), pinjaman yang sudah terlambat, dan satu pengajuan berstatus menunggu konfirmasi. |
-| **Guest** | - | - | - | Pengunjung tanpa login: beranda, katalog, detail buku, dan pengumuman. |
-
----
-
-<div align="center">
-  <sub>RUANG AKSARA</sub>
-  <br />
-  <sub>Individual Project 5, 2026</sub>
-</div>
+| Peran | Nama | Email | Kata sandi | Kondisi demo |
+| --- | --- | --- | --- | --- |
+| Admin | Administrator Ruang Aksara | `admin@ruangaksara.id` | `password123` | Akses penuh: pengguna, kategori, buku, pengumuman, monitoring transaksi, dan CSV. |
+| Pegawai Perpustakaan | Nafisha Kasman | `pegawai@ruangaksara.id` | `password123` | Antrean pinjam, perpanjangan, pengembalian, denda, buku, dan pengumuman. |
+| Mahasiswa | Aliyah Alpat | `aliyah@student.ac.id` | `password123` | Punya pinjaman aktif (*Database System Concepts*), riwayat selesai, dan ulasan. |
+| Mahasiswa | Addah Uddin | `addah@student.ac.id` | `password123` | Riwayat peminjaman selesai beserta ulasan buku. |
+| Mahasiswa | Aura Autang | `aura@student.ac.id` | `password123` | Denda **tertunggak** (pinjam baru diblokir), pinjaman yang sudah terlambat, dan satu pengajuan menunggu konfirmasi. |
