@@ -6,9 +6,18 @@ import { updateCategory } from '@/app/actions/categories';
 
 export default async function KategoriEdit({ params }) {
   await requirePage(['admin']);
-  const id = Number(params.id);
+
+  const { id: rawId } = await params;
+  const id = Number(rawId);
   if (!Number.isInteger(id)) notFound();
+
   const [item] = await query('SELECT * FROM categories WHERE id=$1', [id]);
   if (!item) notFound();
-  return (<div className="mx-auto max-w-2xl"><h1 className="mb-5">Ubah kategori</h1><CategoryForm action={updateCategory} item={item} /></div>);
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <h1 className="mb-5">Ubah kategori</h1>
+      <CategoryForm action={updateCategory} item={item} />
+    </div>
+  );
 }

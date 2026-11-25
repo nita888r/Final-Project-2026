@@ -12,8 +12,9 @@ export const metadata = { title: 'Kelola Kategori – RUANG AKSARA' };
 
 export default async function Kategori({ searchParams }) {
   await requirePage(['admin']);
+  const sp = await searchParams;
   const [{ total }] = await query('SELECT COUNT(*) AS total FROM categories');
-  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(searchParams));
+  const { page, totalPages, offset } = paginate(total, TABLE_PAGE_SIZE, pageOf(sp));
   const rows = await query(
     `SELECT c.*, COUNT(b.id) AS jumlah_buku FROM categories c LEFT JOIN books b ON b.category_id=c.id
      GROUP BY c.id ORDER BY c.nama_kategori LIMIT ${TABLE_PAGE_SIZE} OFFSET $1`, [offset]
@@ -30,7 +31,7 @@ export default async function Kategori({ searchParams }) {
               <td className="font-medium">{c.nama_kategori}</td><td>{c.kode_klasifikasi}</td><td>{c.deskripsi ?? '-'}</td><td>{c.jumlah_buku}</td>
               <td>
                 <div className="flex items-start gap-2">
-                  <Link href={`/admin/kategori/${c.id}/edit`} className="btn btn-outline btn-sm">Ubah</Link>
+                  <Link href={`/admin/kategori/${c.id}`} className="btn btn-outline btn-sm">Ubah</Link>
                   <ActionForm action={deleteCategory}>
                     <input type="hidden" name="id" value={c.id} />
                     <SubmitButton className="btn btn-red btn-sm" confirmText={`Hapus kategori ${c.nama_kategori}?`}>Hapus</SubmitButton>
