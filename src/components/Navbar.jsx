@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logoutAction } from '@/app/actions/auth';
@@ -15,12 +16,15 @@ const LINKS = {
 
 export default function Navbar({ session: s }) {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
   const links = LINKS[s?.role ?? 'guest'];
 
   const isActive = (href) => {
     if (!pathname) return false;
     return pathname === href;
   };
+
+  const closeMenu = () => setMenuOpen(false);
 
   const auth = s ? (
     <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:gap-3">
@@ -32,20 +36,21 @@ export default function Navbar({ session: s }) {
     </div>
   ) : (
     <div className="flex items-center gap-2">
-      <Link href="/login" className="btn nav-login">Masuk</Link>
-      <Link href="/register" className="btn btn-gold nav-register">Daftar</Link>
+      <Link href="/login" onClick={closeMenu} className="btn nav-login">Masuk</Link>
+      <Link href="/register" onClick={closeMenu} className="btn btn-gold nav-register">Daftar</Link>
     </div>
   );
 
   return (
     <header className="site-header border-b-[3px] border-gold bg-brown text-cream">
       <div className="container-page flex items-center justify-between gap-4 py-3.5">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" onClick={closeMenu} className="flex items-center gap-3">
           <LogoMark size={40} />
           <span className="font-display text-xl font-bold leading-none tracking-wide text-cream">
             RUANG AKSARA
           </span>
         </Link>
+
         <nav className="hidden items-center gap-5 text-sm xl:flex">
           {links.map(([href, label]) => {
             const active = isActive(href);
@@ -61,64 +66,84 @@ export default function Navbar({ session: s }) {
             );
           })}
         </nav>
+
         <div className="hidden xl:block">{auth}</div>
-        <details className="ra-mobile-menu relative xl:hidden">
-          <summary className="ra-menu-trigger" aria-label="Buka menu navigasi" title="Menu navigasi">
-            <svg className="ra-menu-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg className="ra-menu-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </summary>
-          <div className="ra-mobile-panel">
-            <div className="ra-mobile-heading">
-              <span>NAVIGASI UTAMA</span>
-              <small>RUANG AKSARA</small>
-            </div>
-            <nav className="ra-mobile-links" aria-label="Navigasi mobile">
-              {links.map(([href, label]) => {
-                const active = isActive(href);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    aria-current={active ? 'page' : undefined}
-                    className={`ra-mobile-link ${active ? 'ra-mobile-link--active' : ''}`}
-                  >
-                    {label}<span aria-hidden="true">›</span>
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="ra-mobile-account">
-              {s && (
-                <>
-                  <div className="ra-mobile-user">
-                    <span className="ra-mobile-avatar">{s.nama?.charAt(0)?.toUpperCase() || 'U'}</span>
-                    <span className="min-w-0">
-                      <strong className="block truncate text-sm">{s.nama}</strong>
-                      <small className="capitalize text-gold">{s.role}</small>
-                    </span>
-                  </div>
-                  {s.role === 'mahasiswa' && (
-                    <Link href="/mahasiswa/profil" className="ra-mobile-link ra-profile-link">
-                      Profil<span aria-hidden="true">›</span>
+
+        <div className={`ra-mobile-menu relative xl:hidden ${menuOpen ? 'is-open' : ''}`}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
+            title="Menu navigasi"
+            className="ra-menu-trigger"
+          >
+            {menuOpen ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+
+          {menuOpen && (
+            <div className="ra-mobile-panel">
+              <div className="ra-mobile-heading">
+                <span>NAVIGASI UTAMA</span>
+                <small>RUANG AKSARA</small>
+              </div>
+              <nav className="ra-mobile-links" aria-label="Navigasi mobile">
+                {links.map(([href, label]) => {
+                  const active = isActive(href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={closeMenu}
+                      aria-current={active ? 'page' : undefined}
+                      className={`ra-mobile-link ${active ? 'ra-mobile-link--active' : ''}`}
+                    >
+                      {label}<span aria-hidden="true">›</span>
                     </Link>
-                  )}
-                </>
-              )}
-              {auth}
+                  );
+                })}
+              </nav>
+              <div className="ra-mobile-account">
+                {s && (
+                  <>
+                    <div className="ra-mobile-user">
+                      <span className="ra-mobile-avatar">{s.nama?.charAt(0)?.toUpperCase() || 'U'}</span>
+                      <span className="min-w-0">
+                        <strong className="block truncate text-sm">{s.nama}</strong>
+                        <small className="capitalize text-gold">{s.role}</small>
+                      </span>
+                    </div>
+                    {s.role === 'mahasiswa' && (
+                      <Link href="/mahasiswa/profil" onClick={closeMenu} className="ra-mobile-link ra-profile-link">
+                        Profil<span aria-hidden="true">›</span>
+                      </Link>
+                    )}
+                  </>
+                )}
+                {auth}
+              </div>
             </div>
-          </div>
-        </details>
+          )}
+        </div>
       </div>
-      {( !s || s.role === 'mahasiswa') && <nav className="mobile-dock" aria-label="Navigasi cepat">
-        <Link href="/" className={isActive('/') ? 'ra-dock-active' : ''}><LibraryIcon name="layers" />Koleksi</Link>
-        <Link href="/katalog" className={isActive('/katalog') ? 'ra-dock-active' : ''}><LibraryIcon name="book" />Katalog</Link>
-        <Link href="/pengumuman" className={isActive('/pengumuman') ? 'ra-dock-active' : ''}><LibraryIcon name="news" />Info</Link>
-        <Link href={s ? '/mahasiswa' : '/login'} className={isActive(s ? '/mahasiswa' : '/login') ? 'ra-dock-active' : ''}><LibraryIcon name="people" />{s ? 'Pinjaman' : 'Masuk'}</Link>
-      </nav>}
+
+      {(!s || s.role === 'mahasiswa') && (
+        <nav className="mobile-dock" aria-label="Navigasi cepat">
+          <Link href="/" className={isActive('/') ? 'ra-dock-active' : ''}><LibraryIcon name="layers" />Koleksi</Link>
+          <Link href="/katalog" className={isActive('/katalog') ? 'ra-dock-active' : ''}><LibraryIcon name="book" />Katalog</Link>
+          <Link href="/pengumuman" className={isActive('/pengumuman') ? 'ra-dock-active' : ''}><LibraryIcon name="news" />Info</Link>
+          <Link href={s ? '/mahasiswa' : '/login'} className={isActive(s ? '/mahasiswa' : '/login') ? 'ra-dock-active' : ''}><LibraryIcon name="people" />{s ? 'Pinjaman' : 'Masuk'}</Link>
+        </nav>
+      )}
+
       <style jsx global>{`
         .ra-nav-item {
           position: relative;
@@ -156,13 +181,8 @@ export default function Navbar({ session: s }) {
           border: 1px solid #e6c879;
           border-radius: 10px;
           cursor: pointer;
-          list-style: none;
         }
-        .ra-menu-trigger::-webkit-details-marker { display: none; }
         .ra-menu-trigger svg { width: 23px; height: 23px; }
-        .ra-menu-close { display: none; }
-        .ra-mobile-menu[open] .ra-menu-open { display: none; }
-        .ra-mobile-menu[open] .ra-menu-close { display: block; }
         .ra-mobile-panel {
           position: absolute;
           top: calc(100% + 11px);
