@@ -67,7 +67,12 @@ export default async function Sirkulasi({ searchParams }) {
                   <td>{l.kode_pinjam}</td>
                   <td>{l.nama_lengkap}<div className="text-xs text-ink/60">{l.nomor_identitas}</div></td>
                   <td>{l.judul}</td>
-                  <td>{fmtDate(l.jatuh_tempo)} {l.hari_terlambat > 0 && <Badge status="terlambat" />}</td>
+                  <td>
+                    <div className="flex flex-col items-start gap-1">
+                      <span>{fmtDate(l.jatuh_tempo)}</span>
+                      {l.hari_terlambat > 0 && <Badge status="terlambat" />}
+                    </div>
+                  </td>
                   <td>{l.hari_terlambat > 0 ? <span className="text-brick">{l.hari_terlambat} hari × {rupiah(l.denda_per_hari)} = {rupiah(l.denda_estimasi)}</span> : 'Tidak ada'}</td>
                   <td>
                     <ActionForm action={konfirmasiPengembalian}>

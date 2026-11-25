@@ -15,10 +15,11 @@ const SORTS = {
 };
 
 export default async function Katalog({ searchParams }) {
-  const q = (searchParams.q ?? '').trim();
-  const kategori = Number.isInteger(Number(searchParams.kategori)) && searchParams.kategori ? Number(searchParams.kategori) : null;
-  const sort = SORTS[searchParams.sort] ? searchParams.sort : 'terbaru';
-  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1);
+  const search = await searchParams;
+  const q = (search.q ?? '').trim();
+  const kategori = Number.isInteger(Number(search.kategori)) && search.kategori ? Number(search.kategori) : null;
+  const sort = SORTS[search.sort] ? search.sort : 'terbaru';
+  const page = Math.max(1, parseInt(search.page ?? '1', 10) || 1);
 
   const where = `($1::text = '' OR b.judul ILIKE $2 OR b.pengarang ILIKE $2) AND ($3::bigint IS NULL OR b.category_id = $3)`;
   const params = [q, `%${q}%`, kategori];
